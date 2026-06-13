@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<title>Wyścigi</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+  body { background:#1a1d23; color:#eee; overflow:hidden; }
+  #ui { position:absolute; top:0; left:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center; flex-direction:column; z-index:10; }
+  canvas { display:block; background:#3a7d3a; }
+  h1 { font-size:48px; margin-bottom:30px; letter-spacing:4px; color:#fff; text-shadow:0 0 20px #f7c531; }
+  .menu-btn { width:280px; padding:16px; margin:8px; font-size:20px; border:none; border-radius:10px; background:#f7c531; color:#222; cursor:pointer; font-weight:bold; transition:.2s; }
+  .menu-btn:hover { background:#ffe066; transform:scale(1.05); }
+  .menu-btn.secondary { background:#444; color:#fff; }
+  .menu-btn.secondary:hover { background:#666; }
+  .panel { background:#22262e; padding:40px 50px; border-radius:16px; box-shadow:0 0 40px rgba(0,0,0,.5); text-align:center; }
+  .levels { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; max-width:400px;}
+  .lvl-btn { width:80px; height:80px; font-size:24px; }
+  #hud { position:absolute; top:10px; left:10px; color:#fff; font-size:20px; background:rgba(0,0,0,.4); padding:10px 16px; border-radius:8px; z-index:5; display:none; }
+  #hud2 { position:absolute; top:10px; right:10px; color:#fff; font-size:20px; background:rgba(0,0,0,.4); padding:10px 16px; border-radius:8px; z-index:5; display:none; }
+  #msg { position:absolute; top:40%; left:50%; transform:translate(-50%,-50%); font-size:48px; color:#fff; text-shadow:0 0 20px #f7c531; z-index:6; display:none; text-align:center; }
+  #backBtn { position:absolute; bottom:10px; left:10px; z-index:8; display:none; }
+  small { color:#aaa; display:block; margin-top:6px; font-size:13px; }
+</style>
+</head>
+<body>
+
+<div id="ui">
+  <div class="panel" id="mainMenu">
+    <h1>WYŚCIGI</h1>
+    <button class="menu-btn" onclick="showLevels('race')">Graj (vs 3 boty)</button>
+    <button class="menu-btn" onclick="startDuel()">Duel (WSAD vs Strzałki)<br><small style="color:#333">Wyścig 2 graczy</small></button>
+    <button class="menu-btn" onclick="showLevels('solo')">Solo (na czas)</button>
+  </div>
+
+  <div class="panel" id="levelMenu" style="display:none;">
+    <h1 style="font-size:32px;">Wybierz poziom</h1>
+    <div class="levels">
+      <button class="menu-btn lvl-btn" onclick="startGame(0)">1</button>
+      <button class="menu-btn lvl-btn" onclick="startGame(1)">2</button>
+      <button class="menu-btn lvl-btn" onclick="startGame(2)">3</button>
+      <button class="menu-btn lvl-btn" onclick="startGame(3)">4</button>
+      <button class="menu-btn lvl-btn" onclick="startGame(4)">5</button>
+    </div>
+    <button class="menu-btn secondary" onclick="backToMain()">Powrót</button>
+  </div>
+</div>
+
+<div id="hud"></div>
+<div id="hud2"></div>
+<div id="msg"></div>
+<button class="menu-btn secondary" id="backBtn" onclick="backToMain()">Menu</button>
+<canvas id="canvas"></canvas>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+function resize(){ canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+resize();
+window.addEventListener('resize', resize);
+
+// ===================== TRACKS =====================
+// Each track is a list of waypoints (centerline) forming a closed loop, plus road width.
+// Coordinates are in world space.
+
+// Tracks built from explicit polyline points (sharp corners) - much larger than before
+function makeRectLoop(cx,cy,w,h){
+  return [
+    {x:cx-w, y:cy-h}, {x:cx+w, y:cy-h}, {x:cx+w, y:cy+h}, {x:cx-w, y:cy+h}
+  ];
+}
+
+// dense() inserts intermediate points along straight segments so AI/progress tracking
+// works smoothly, while keeping sharp corner vertices intact (no rounding).
+function dense(points, stepsPerSeg=14){
+  const out=[];
+  for(let i=0;i<points.length;i++){
+    const a = points[i], b = points[(i+1)%points.length];
+    for(let s=0;s<stepsPerSeg;s++){
+      const t=s/stepsPerSeg;
+      out.push({x:a.x+(b.x-a.x)*t, y:a.y+(b.y-a.y)*t});
+    }
+  }
+  return out;
+}
+
+// Level 1: big rectangular oval-ish loop with two sharp hairpins
+function track1(){
+  const pts = [
+    {x:-700,y:-450},{x:700,y:-450},{x:700,y:-150},
+    {x:200,y:-150},{x:200,y:150},{x:700,y:150},
+    {x:700,y:450},{x:-700,y:450},{x:-700,y:150},
+    {x:-200,y:150},{x:-200,y:-150},{x:-700,y:-150}
+  ];
+  return dense(pts,12);
+}
+
+// Level 2: figure-8 style with sharp crossing corners, large scale
+function track2(){
+  const pts = [
+    {x:-650,y:-500},{x:0,y:-500},{x:0,y:-100},
+    {x:650,y:-100},{x:650,y:500},{x:0,y:500},
+    {x:0,y:100},{x:-650,y:100}
+  ];
+  return dense(pts,12);
+}
+
+// Level 3: zigzag chicane track, lots of sharp turns
+function track3(){
+  const pts = [
+    {x:-750,y:-400},{x:-300,y:-400},{x:-300,y:-100},
+    {x:150,y:-100},{x:150,y:-400},{x:750,y:-400},
+    {x:750,y:0},{x:300,y:0},{x:300,y:300},
+    {x:750,y:300},{x:750,y:550},{x:-750,y:550},
+    {x:-750,y:200},{x:-300,y:200},{x:-300,y:450},
+    {x:-750,y:450}
+  ];
+  return dense(pts,10);
+}
+
+// Level 4: wide track with long straights and 90-degree corners (large)
+function track4(){
+  const pts = [
+    {x:-850,y:-350},{x:850,y:-350},{x:850,y:0},
+    {x:400,y:0},{x:400,y:350},{x:850,y:350},
+    {x:850,y:600},{x:-850,y:600},{x:-850,y:250},
+    {x:-400,y:250},{x:-400,y:-100},{x:-850,y:-100}
+  ];
+  return dense(pts,12);
+}
+
+// Level 5: complex sharp-cornered circuit, biggest one
+function track5(){
+  const pts = [
+    {x:-900,y:-500},{x:-300,y:-500},{x:-300,y:-200},
+    {x:300,y:-200},{x:300,y:-600},{x:900,y:-600},
+    {x:900,y:-100},{x:500,y:-100},{x:500,y:200},
+    {x:900,y:200},{x:900,y:600},{x:200,y:600},
+    {x:200,y:300},{x:-200,y:300},{x:-200,y:600},
+    {x:-900,y:600},{x:-900,y:100},{x:-500,y:100},
+    {x:-500,y:-200},{x:-900,y:-200}
+  ];
+  return dense(pts,10);
+}
+
+const LEVELS = [
+  { name:"Wielki prostokąt z zakrętami", width:140, points: track1(), laps:3, timeLimit:75 },
+  { name:"Ósemka XXL", width:130, points: track2(), laps:3, timeLimit:90 },
+  { name:"Szykany", width:120, points: track3(), laps:3, timeLimit:100 },
+  { name:"Szeroki kwadrat", width:150, points: track4(), laps:3, timeLimit:85 },
+  { name:"Wielki obwód", width:120, points: track5(), laps:3, timeLimit:120 },
+];
+
+// generate decorative trees that don't overlap the track
+function generateTrees(track, bounds, count){
+  const trees=[];
+  let tries=0;
+  while(trees.length<count && tries<count*20){
+    tries++;
+    const x = bounds.minX + Math.random()*(bounds.maxX-bounds.minX);
+    const y = bounds.minY + Math.random()*(bounds.maxY-bounds.minY);
+    let onRoad=false;
+    for(const p of track.points){
+      if((p.x-x)**2+(p.y-y)**2 < (track.width*0.8)**2){ onRoad=true; break; }
+    }
+    if(!onRoad) trees.push({x,y,size:18+Math.random()*14});
+  }
+  return trees;
+}
+function trackBounds(track){
+  let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
+  for(const p of track.points){
+    if(p.x<minX)minX=p.x; if(p.x>maxX)maxX=p.x;
+    if(p.y<minY)minY=p.y; if(p.y>maxY)maxY=p.y;
+  }
+  const pad=300;
+  return {minX:minX-pad,maxX:maxX+pad,minY:minY-pad,maxY:maxY+pad};
+}
+for(const lvl of LEVELS){
+  lvl.bounds = trackBounds(lvl);
+  lvl.trees = generateTrees(lvl, lvl.bounds, 60);
+  lvl.rocks = generateTrees(lvl, lvl.bounds, 40);
+}
+
+// ===================== GAME STATE =====================
+let mode = null; // 'race','duel','solo'
+let level = null;
+let running = false;
+let animId = null;
+
+const keys = {};
+window.addEventListener('keydown', e => { keys[e.key.toLowerCase()] = true; });
+window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+
+// ===================== CAR PHYSICS =====================
+class Car {
+  constructor(x,y,angle,color, isPlayer, controls){
+    this.x=x; this.y=y; this.angle=angle;
+    this.vx=0; this.vy=0;
+    this.speed=0;
+    this.color=color;
+    this.isPlayer=isPlayer;
+    this.controls=controls; // {up,down,left,right}
+    this.maxSpeed = 4.6;       // not too fast
+    this.accel = 0.10;
+    this.brake = 0.18;
+    this.friction = 0.985;
+    this.turnSpeed = 0.030;
+    this.driftFactor = 0;
+    this.lapProgress = 0;
+    this.lap = 0;
+    this.finished = false;
+    this.finishTime = 0;
+    this.targetIdx = 1; // for AI
+    this.steerInput = 0;
+  }
+  update(track, dt, elapsed){
+    let throttle=0, steer=0, braking=false, drifting=false;
+    if(this.isPlayer){
+      if(keys[this.controls.up]) throttle=1;
+      if(keys[this.controls.down]) { throttle=-0.6; braking=true; }
+      if(keys[this.controls.left]) steer=-1;
+      if(keys[this.controls.right]) steer=1;
+      if(keys[this.controls.drift]) drifting=true;
+    } else {
+      // AI
+      if(this._mistakeTimer===undefined){ this._mistakeTimer=0; this._mistakeUntil=0; this._mistakeSteer=0; }
+      this._mistakeTimer--;
+      if(this._mistakeTimer<=0){
+        // occasionally start a "mistake" period (oversteer/understeer/throttle lift)
+        if(Math.random() < 0.01){
+          this._mistakeUntil = 30 + Math.random()*40;
+          this._mistakeSteer = (Math.random()-0.5)*1.2;
+        }
+        this._mistakeTimer = 20 + Math.random()*40;
+      }
+      const target = track.points[this.targetIdx];
+      const dx = target.x - this.x, dy = target.y - this.y;
+      const targetAngle = Math.atan2(dy,dx);
+      let diff = targetAngle - this.angle;
+      while(diff > Math.PI) diff -= Math.PI*2;
+      while(diff < -Math.PI) diff += Math.PI*2;
+      steer = Math.max(-1, Math.min(1, diff*2));
+      throttle = 0.85;
+      if(Math.abs(diff) > 0.9) throttle = 0.5;
+
+      if(this._mistakeUntil>0){
+        this._mistakeUntil--;
+        steer += this._mistakeSteer;
+        steer = Math.max(-1, Math.min(1, steer));
+        throttle *= 0.7;
+      }
+
+      if(Math.hypot(dx,dy) < 80){
+        this.targetIdx = (this.targetIdx+1) % track.points.length;
+      }
+    }
+
+    // speed
+    if(throttle>0){
+      this.speed += this.accel*throttle;
+    } else if(throttle<0){
+      this.speed += this.brake*throttle;
+    }
+    this.speed *= this.friction;
+    if(this.speed > this.maxSpeed) this.speed = this.maxSpeed;
+    if(this.speed < -this.maxSpeed*0.5) this.speed = -this.maxSpeed*0.5;
+    if(Math.abs(this.speed) < 0.01) this.speed = 0;
+
+    // turning - drift mechanic: while drifting, turn radius tighter but grip lower (slide)
+    let effTurn = this.turnSpeed * (0.4 + Math.abs(this.speed)/this.maxSpeed*0.9);
+    if(drifting){
+      effTurn *= 1.7;
+      this.driftFactor = Math.min(1, this.driftFactor + 0.06);
+    } else {
+      this.driftFactor = Math.max(0, this.driftFactor - 0.08);
+    }
+    this.angle += steer * effTurn * (this.speed>=0?1:-1);
+
+    // velocity from heading, with drift sliding (velocity lags behind heading)
+    const heading = {x:Math.cos(this.angle), y:Math.sin(this.angle)};
+    const targetVx = heading.x * this.speed;
+    const targetVy = heading.y * this.speed;
+    const grip = drifting ? 0.08 : 0.25;
+    this.vx += (targetVx - this.vx) * grip;
+    this.vy += (targetVy - this.vy) * grip;
+
+    this.x += this.vx;
+    this.y += this.vy;
+
+    // wall collision: find nearest centerline point, push car back inside road width, bounce velocity
+    this.handleWalls(track);
+
+    // lap progress tracking
+    this.updateProgress(track);
+  }
+  handleWalls(track){
+    const pts = track.points;
+    let bestDist=Infinity, bestPt=null, bestNorm=null;
+    for(let i=0;i<pts.length;i++){
+      const a = pts[i], b = pts[(i+1)%pts.length];
+      const abx=b.x-a.x, aby=b.y-a.y;
+      const len2 = abx*abx+aby*aby || 1;
+      let t = ((this.x-a.x)*abx + (this.y-a.y)*aby)/len2;
+      t = Math.max(0, Math.min(1, t));
+      const px = a.x + abx*t, py = a.y + aby*t;
+      const d2 = (this.x-px)**2 + (this.y-py)**2;
+      if(d2 < bestDist){
+        bestDist = d2; bestPt = {x:px,y:py};
+      }
+    }
+    const dist = Math.sqrt(bestDist);
+    const limit = track.width/2 - 14; // car half-size margin
+    if(dist > limit){
+      const nx = (this.x - bestPt.x)/ (dist||1);
+      const ny = (this.y - bestPt.y)/ (dist||1);
+      this.x = bestPt.x + nx*limit;
+      this.y = bestPt.y + ny*limit;
+      const vn = this.vx*nx + this.vy*ny;
+      this.vx -= 1.9 * vn * nx;
+      this.vy -= 1.9 * vn * ny;
+      this.vx *= 0.65;
+      this.vy *= 0.65;
+      this.speed *= 0.55;
+    }
+  }
+  updateProgress(track){
+    const pts = track.points;
+    let nearest = 0, nd = Infinity;
+    for(let i=0;i<pts.length;i++){
+      const d = Math.hypot(pts[i].x-this.x, pts[i].y-this.y);
+      if(d<nd){nd=d; nearest=i;}
+    }
+    if(this._lastIdx===undefined) this._lastIdx = nearest;
+    let diff = nearest - this._lastIdx;
+    if(diff < -pts.length/2) { // crossed from end to start = new lap
+      this.lap++;
+    } else if(diff > pts.length/2){
+      this.lap--;
+    }
+    this._lastIdx = nearest;
+    this.progressIdx = nearest;
+  }
+}
+
+// ===================== TRACK DRAWING =====================
+function drawTrack(track, cam){
+  const pts = track.points;
+  ctx.save();
+  ctx.translate(canvas.width/2 - cam.x, canvas.height/2 - cam.y);
+
+  // grass
+  ctx.fillStyle = '#3a7d3a';
+  ctx.fillRect(cam.x-canvas.width, cam.y-canvas.height, canvas.width*2, canvas.height*2);
+
+  // rocks
+  for(const r of track.rocks){
+    ctx.fillStyle = '#8a8a8a';
+    ctx.beginPath();
+    ctx.arc(r.x, r.y, r.size*0.5, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = '#6e6e6e';
+    ctx.beginPath();
+    ctx.arc(r.x+r.size*0.15, r.y+r.size*0.1, r.size*0.25, 0, Math.PI*2);
+    ctx.fill();
+  }
+
+  // trees
+  for(const t of track.trees){
+    ctx.fillStyle = '#2d5a2d';
+    ctx.beginPath();
+    ctx.arc(t.x, t.y, t.size, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = '#5a3d1f';
+    ctx.fillRect(t.x-3, t.y, 6, t.size*0.7);
+  }
+
+  // road
+  ctx.lineCap='round'; ctx.lineJoin='round';
+  ctx.strokeStyle = '#444c56';
+  ctx.lineWidth = track.width;
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for(let i=1;i<=pts.length;i++){
+    const p = pts[i%pts.length];
+    ctx.lineTo(p.x,p.y);
+  }
+  ctx.stroke();
+
+  // road edges
+  ctx.strokeStyle = '#f0f0f0';
+  ctx.lineWidth = track.width+6;
+  ctx.globalCompositeOperation='destination-over';
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for(let i=1;i<=pts.length;i++){
+    const p = pts[i%pts.length];
+    ctx.lineTo(p.x,p.y);
+  }
+  ctx.stroke();
+  ctx.globalCompositeOperation='source-over';
+
+  // center dashed line
+  ctx.strokeStyle='#f7c531';
+  ctx.lineWidth=3;
+  ctx.setLineDash([15,15]);
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for(let i=1;i<=pts.length;i++){
+    const p = pts[i%pts.length];
+    ctx.lineTo(p.x,p.y);
+  }
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // start/finish line
+  const a = pts[0], b = pts[1];
+  const dx=b.x-a.x, dy=b.y-a.y;
+  const len=Math.hypot(dx,dy);
+  const nx=-dy/len, ny=dx/len;
+  ctx.fillStyle='#fff';
+  for(let i=-1;i<=1;i+=0.5){
+    ctx.fillRect(a.x + nx*i*track.width/3 - 3, a.y + ny*i*track.width/3 -3, 8,8);
+  }
+  ctx.strokeStyle='#000';
+  ctx.lineWidth=4;
+  ctx.beginPath();
+  ctx.moveTo(a.x - nx*track.width/2, a.y - ny*track.width/2);
+  ctx.lineTo(a.x + nx*track.width/2, a.y + ny*track.width/2);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+function drawCar(car, cam){
+  ctx.save();
+  ctx.translate(canvas.width/2 - cam.x + car.x, canvas.height/2 - cam.y + car.y);
+  ctx.rotate(car.angle);
+  // drift smoke
+  if(car.driftFactor>0.3){
+    ctx.fillStyle = `rgba(220,220,220,${car.driftFactor*0.5})`;
+    ctx.beginPath();
+    ctx.ellipse(-14,0,10+car.driftFactor*8,6+car.driftFactor*5,0,0,Math.PI*2);
+    ctx.fill();
+  }
+  ctx.fillStyle = car.color;
+  ctx.fillRect(-12,-7,24,14);
+  ctx.fillStyle = '#222';
+  ctx.fillRect(-4,-8,10,16);
+  // wheels
+  ctx.fillStyle='#111';
+  ctx.fillRect(-10,-9,6,3);
+  ctx.fillRect(-10,6,6,3);
+  ctx.fillRect(6,-9,6,3);
+  ctx.fillRect(6,6,6,3);
+  ctx.restore();
+}
+
+// ===================== GAME LOOP =====================
+let cars = [];
+let camFollow = null;
+let raceStart = 0;
+let totalLaps = 3;
+let finishedOrder = [];
+
+function setupRace(levelIdx, gameMode){
+  level = LEVELS[levelIdx];
+  totalLaps = level.laps;
+  finishedOrder = [];
+  const start = level.points[0];
+  const start2 = level.points[1];
+  const dir = Math.atan2(start2.y-start.y, start2.x-start.x);
+
+  cars = [];
+  // Player 1
+  const p1 = new Car(start.x, start.y, dir, '#e63946', true, {up:'arrowup',down:'arrowdown',left:'arrowleft',right:'arrowright',drift:'shift'});
+  if(gameMode==='race') {
+    p1.controls = {up:'arrowup',down:'arrowdown',left:'arrowleft',right:'arrowright',drift:'shift'};
+  }
+  if(gameMode==='duel'){
+    p1.controls = {up:'w',down:'s',left:'a',right:'d',drift:' '};
+  }
+  cars.push(p1);
+
+  if(gameMode==='duel'){
+    const p2 = new Car(start.x-20, start.y+20, dir, '#1d9e75', true, {up:'arrowup',down:'arrowdown',left:'arrowleft',right:'arrowright',drift:'shift'});
+    cars.push(p2);
+  }
+  if(gameMode==='race'){
+    const offsets = [[-25,-25],[25,25],[-25,25]];
+    const colors = ['#3a86ff','#ffbe0b','#9d4edd'];
+    for(let i=0;i<3;i++){
+      const ai = new Car(start.x+offsets[i][0], start.y+offsets[i][1], dir, colors[i], false, null);
+      ai.maxSpeed = 4.0 + Math.random()*0.5;
+      ai.targetIdx = 2;
+      cars.push(ai);
+    }
+  }
+  if(gameMode==='solo'){
+    p1.maxSpeed = 4.8;
+  }
+
+  raceStart = performance.now();
+  running = true;
+  document.getElementById('msg').style.display='none';
+  loop();
+}
+
+function loop(){
+  if(!running) return;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  for(const c of cars){
+    if(!c.finished) c.update(level, 1, performance.now()-raceStart);
+  }
+
+  // check finish
+  if(mode!=='solo'){
+    for(const c of cars){
+      if(!c.finished && c.lap >= totalLaps){
+        c.finished = true;
+        c.finishTime = performance.now()-raceStart;
+        finishedOrder.push(c);
+      }
+    }
+  } else {
+    const c = cars[0];
+    if(!c.finished && c.lap >= totalLaps){
+      c.finished = true;
+      c.finishTime = performance.now()-raceStart;
+    }
+  }
+
+  // camera follows player 1 (split logic for duel: just follow p1, simple)
+  camFollow = cars[0];
+
+  drawTrack(level, camFollow);
+  for(const c of cars) drawCar(c, camFollow);
+
+  updateHUD();
+
+  // end condition
+  if(mode==='race' && cars[0].finished){
+    endRace();
+    return;
+  }
+  if(mode==='duel' && (cars[0].finished || cars[1].finished)){
+    endRace();
+    return;
+  }
+  if(mode==='solo'){
+    const elapsed = (performance.now()-raceStart)/1000;
+    if(cars[0].finished){
+      endRace();
+      return;
+    }
+    if(elapsed > level.timeLimit){
+      endRace(true);
+      return;
+    }
+  }
+
+  animId = requestAnimationFrame(loop);
+}
+
+function fmtTime(ms){
+  const s = ms/1000;
+  return s.toFixed(2)+'s';
+}
+
+function updateHUD(){
+  const hud = document.getElementById('hud');
+  const hud2 = document.getElementById('hud2');
+  const elapsed = (performance.now()-raceStart)/1000;
+
+  if(mode==='race'){
+    hud.style.display='block';
+    let pos = 1;
+    const myIdx = cars[0].lap*100000 + cars[0].progressIdx;
+    for(let i=1;i<cars.length;i++){
+      const idx = cars[i].lap*100000 + cars[i].progressIdx;
+      if(idx > myIdx) pos++;
+    }
+    hud.innerHTML = `Okrążenie: ${Math.min(cars[0].lap+1,totalLaps)}/${totalLaps}<br>Pozycja: ${pos}/4<br>Czas: ${elapsed.toFixed(1)}s`;
+    hud2.style.display='none';
+  } else if(mode==='duel'){
+    hud.style.display='block';
+    hud2.style.display='block';
+    hud.innerHTML = `Gracz 1 (WSAD)<br>Okrążenie: ${Math.min(cars[0].lap+1,totalLaps)}/${totalLaps}`;
+    hud2.innerHTML = `Gracz 2 (Strzałki)<br>Okrążenie: ${Math.min(cars[1].lap+1,totalLaps)}/${totalLaps}`;
+  } else if(mode==='solo'){
+    hud.style.display='block';
+    const remaining = Math.max(0, level.timeLimit - elapsed);
+    hud.innerHTML = `Okrążenie: ${Math.min(cars[0].lap+1,totalLaps)}/${totalLaps}<br>Czas: ${elapsed.toFixed(1)}s<br>Limit: ${remaining.toFixed(1)}s`;
+    hud2.style.display='none';
+  }
+}
+
+function endRace(timeout){
+  running = false;
+  cancelAnimationFrame(animId);
+  const msg = document.getElementById('msg');
+  msg.style.display='block';
+
+  if(mode==='race'){
+    const order = [...cars].sort((a,b)=>{
+      const ai = a.lap*100000+(a.progressIdx||0);
+      const bi = b.lap*100000+(b.progressIdx||0);
+      return (b.finished?1:0)-(a.finished?1:0) || (a.finishTime||Infinity)-(b.finishTime||Infinity) || bi-ai;
+    });
+    const place = order.indexOf(cars[0])+1;
+    msg.innerHTML = place===1 ? `🏆 Wygrałeś!<br><small style="font-size:20px">Czas: ${fmtTime(cars[0].finishTime)}</small>` : `Zajęłeś ${place}. miejsce`;
+  } else if(mode==='duel'){
+    const winner = cars[0].finished ? 1 : 2;
+    msg.innerHTML = `🏁 Gracz ${winner} wygrywa!`;
+  } else if(mode==='solo'){
+    if(timeout){
+      msg.innerHTML = `⏱ Czas minął!<br><small style="font-size:20px">Spróbuj ponownie</small>`;
+    } else {
+      msg.innerHTML = `✅ Ukończono!<br><small style="font-size:20px">Czas: ${fmtTime(cars[0].finishTime)}</small>`;
+    }
+  }
+}
+
+// ===================== MENU LOGIC =====================
+function showLevels(m){
+  mode = m;
+  document.getElementById('mainMenu').style.display='none';
+  document.getElementById('levelMenu').style.display='block';
+}
+function startDuel(){
+  mode='duel';
+  startGame(0);
+}
+function startGame(levelIdx){
+  document.getElementById('ui').style.display='none';
+  document.getElementById('backBtn').style.display='block';
+  setupRace(levelIdx, mode);
+}
+function backToMain(){
+  running=false;
+  cancelAnimationFrame(animId);
+  document.getElementById('ui').style.display='flex';
+  document.getElementById('mainMenu').style.display='block';
+  document.getElementById('levelMenu').style.display='none';
+  document.getElementById('backBtn').style.display='none';
+  document.getElementById('hud').style.display='none';
+  document.getElementById('hud2').style.display='none';
+  document.getElementById('msg').style.display='none';
+}
+</script>
+</body>
+</html>
