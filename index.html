@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Geometria analityczna w przestrzeni — test</title>
+<title>Matematyka — test ze skryptu (3 części)</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
@@ -18,27 +18,58 @@
     --gold:#b8893f;
     --card:#fffdf7;
     --shadow: 0 1px 0 rgba(0,0,0,.05), 0 8px 24px rgba(40,30,10,.08);
+    --bg-tint: radial-gradient(1200px 600px at 10% -10%, #fff7e6 0%, transparent 60%);
+    --line-tint: rgba(154,51,36,.045);
+  }
+  body.theme-2{
+    --ink:#1b2430;
+    --paper:#f1f4ee;
+    --paper2:#e7ecdf;
+    --rule:#b9c4ac;
+    --accent:#3a6b4a;
+    --accent2:#5b4a8a;
+    --gold:#8a9a55;
+    --card:#fdfdf8;
+    --shadow: 0 1px 0 rgba(0,0,0,.05), 0 8px 24px rgba(20,30,10,.08);
+    --bg-tint: radial-gradient(1200px 600px at 90% -10%, #eef6ea 0%, transparent 60%);
+    --line-tint: rgba(58,107,74,.04);
+  }
+  body.theme-3{
+    --ink:#1c1f2b;
+    --paper:#eef0f6;
+    --paper2:#e2e5f0;
+    --rule:#aab0c9;
+    --accent:#324a91;
+    --accent2:#7a3b66;
+    --gold:#5f6fae;
+    --card:#fbfbfd;
+    --shadow: 0 1px 0 rgba(0,0,0,.05), 0 8px 24px rgba(10,15,40,.10);
+    --bg-tint: radial-gradient(1200px 600px at 50% -10%, #eef1fb 0%, transparent 60%);
+    --line-tint: rgba(50,74,145,.045);
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{
     background:
-      radial-gradient(1200px 600px at 10% -10%, #fff7e6 0%, transparent 60%),
-      repeating-linear-gradient(0deg, transparent, transparent 37px, rgba(154,51,36,.045) 38px),
+      var(--bg-tint),
+      repeating-linear-gradient(0deg, transparent, transparent 37px, var(--line-tint) 38px),
       var(--paper);
     color:var(--ink);
     font-family: "Iowan Old Style","Palatino Linotype", Georgia, "Times New Roman", serif;
     min-height:100vh;
     padding-bottom:80px;
+    transition: background .4s ease, color .4s ease;
   }
   .margin-line{
     position:fixed; top:0; bottom:0; left:64px; width:1px;
-    background:rgba(154,51,36,.25);
+    background:var(--accent);
+    opacity:.25;
     z-index:0; pointer-events:none;
+    transition: background .4s ease;
   }
   header{
     position:relative;
-    padding:56px 24px 30px 96px;
+    padding:56px 24px 18px 96px;
     max-width:980px; margin:0 auto;
   }
   .eyebrow{
@@ -50,16 +81,16 @@
     margin-bottom:14px;
     display:flex; align-items:center; gap:10px;
   }
-  .eyebrow::before{
-    content:"§17";
+  .eyebrow .chip{
     background:var(--accent2);
     color:var(--paper);
     padding:2px 8px;
     border-radius:2px;
     font-style:normal;
+    transition: background .4s ease;
   }
   h1{
-    font-size:clamp(32px,5vw,52px);
+    font-size:clamp(30px,4.6vw,48px);
     line-height:1.05;
     margin:0 0 12px 0;
     font-weight:600;
@@ -71,15 +102,57 @@
     color:var(--accent);
   }
   .sub{
-    max-width:620px;
-    font-size:17px;
+    max-width:640px;
+    font-size:16.5px;
     line-height:1.55;
     color:#4b4438;
     border-left:3px solid var(--gold);
     padding-left:16px;
   }
+
+  /* tabs */
+  .tabs-wrap{
+    max-width:980px; margin:28px auto 0; padding:0 24px 0 96px;
+  }
+  .tabs{
+    display:flex; gap:10px; flex-wrap:wrap;
+  }
+  .tab-btn{
+    font-family:"Courier New",monospace;
+    font-size:13px;
+    letter-spacing:.04em;
+    background:var(--card);
+    border:1px solid var(--rule);
+    color:var(--ink);
+    padding:10px 16px;
+    border-radius:999px;
+    cursor:pointer;
+    display:flex; align-items:center; gap:8px;
+    transition:all .2s ease;
+  }
+  .tab-btn .dot{
+    width:8px; height:8px; border-radius:50%;
+    background:var(--rule);
+    transition:background .2s ease;
+  }
+  .tab-btn:hover{
+    border-color:var(--accent);
+  }
+  .tab-btn.active{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:#fff;
+  }
+  .tab-btn.active .dot{
+    background:#fff;
+  }
+  .tab-btn .tcount{
+    opacity:.7;
+    font-size:11.5px;
+  }
+
   .progress-wrap{
-    max-width:980px; margin:0 auto; padding:0 24px 0 96px;
+    max-width:980px; margin:18px auto 0; padding:0 24px 0 96px;
   }
   .progress-bar{
     height:6px; width:100%; background:var(--paper2);
@@ -89,18 +162,22 @@
   .progress-fill{
     height:100%; width:0%;
     background:linear-gradient(90deg,var(--gold),var(--accent));
-    transition:width .35s ease;
+    transition:width .35s ease, background .4s ease;
   }
   .progress-label{
     font-family:"Courier New",monospace;
     font-size:12px; color:#7a7263; margin-top:8px;
     display:flex; justify-content:space-between;
   }
+
   main{
-    max-width:980px; margin:36px auto 0; padding:0 24px 0 96px;
+    max-width:980px; margin:30px auto 0; padding:0 24px 0 96px;
     display:flex; flex-direction:column; gap:22px;
     position:relative; z-index:1;
   }
+  .part-block{ display:none; flex-direction:column; gap:22px; }
+  .part-block.active{ display:flex; }
+
   .section-divider{
     display:flex; align-items:center; gap:14px;
     margin:38px 0 4px;
@@ -121,7 +198,6 @@
   }
   .card:hover{
     transform:translateY(-1px);
-    box-shadow:0 2px 0 rgba(0,0,0,.05), 0 14px 30px rgba(40,30,10,.12);
   }
   .q-row{
     display:flex; align-items:flex-start; gap:16px;
@@ -167,11 +243,10 @@
     max-height:0;
     overflow:hidden;
     transition:max-height .35s ease;
-    background:
-      linear-gradient(180deg, var(--paper2), #efe7d2);
+    background: linear-gradient(180deg, var(--paper2), var(--paper));
     border-top:1px dashed var(--rule);
   }
-  .card.open .answer{ max-height:900px; }
+  .card.open .answer{ max-height:1100px; }
   .answer-inner{
     padding:18px 22px 24px 22px;
     font-size:16.5px;
@@ -191,6 +266,25 @@
   .answer-inner .note{
     font-size:14px; color:#7a7263; font-style:italic;
   }
+  .answer-inner table{
+    width:100%; border-collapse:collapse; font-size:14.5px; margin:10px 0;
+  }
+  .answer-inner td, .answer-inner th{
+    border:1px solid var(--rule); padding:6px 10px; text-align:left;
+  }
+  .answer-inner th{ background:var(--paper2); }
+
+  .part-nav{
+    display:flex; justify-content:space-between; margin-top:30px;
+    font-family:"Courier New",monospace; font-size:13px;
+  }
+  .part-nav button{
+    background:none; border:1px solid var(--rule); color:var(--accent2);
+    padding:8px 14px; border-radius:6px; cursor:pointer;
+  }
+  .part-nav button:hover{ border-color:var(--accent); }
+  .part-nav button:disabled{ opacity:.3; cursor:default; }
+
   footer{
     max-width:980px; margin:50px auto 0; padding:24px 24px 0 96px;
     color:#8a8270;
@@ -200,33 +294,45 @@
   }
   @media (max-width:680px){
     .margin-line{left:18px;}
-    header,.progress-wrap,main,footer{padding-left:30px;}
+    header,.tabs-wrap,.progress-wrap,main,footer{padding-left:30px;}
     .q-text{font-size:16px;}
   }
 </style>
 </head>
-<body>
+<body class="theme-1">
 <div class="margin-line"></div>
 
 <header>
-  <div class="eyebrow">Skrypt · dr Jacek Szybowski · AGH</div>
-  <h1>Geometria analityczna <em>w przestrzeni</em></h1>
-  <p class="sub">Część 1/3 — definicje, twierdzenia i przykłady z rachunku wektorowego, prostych i płaszczyzn w przestrzeni R³. Kliknij pytanie, aby odsłonić odpowiedź.</p>
+  <div class="eyebrow"><span class="chip" id="chipLabel">§17</span> Skrypt · dr Jacek Szybowski · AGH</div>
+  <h1 id="mainTitle">Geometria analityczna <em>w przestrzeni</em></h1>
+  <p class="sub" id="mainSub">Część 1/3 — definicje, twierdzenia i przykłady z rachunku wektorowego, prostych i płaszczyzn w przestrzeni R³. Kliknij pytanie, aby odsłonić odpowiedź.</p>
 </header>
+
+<div class="tabs-wrap">
+  <div class="tabs" id="tabs"></div>
+</div>
 
 <div class="progress-wrap">
   <div class="progress-bar"><div class="progress-fill" id="fill"></div></div>
-  <div class="progress-label"><span id="count">0 / 0 odsłoniętych</span><span>Część 1 z 3</span></div>
+  <div class="progress-label"><span id="count">0 / 0 odsłoniętych w tej części</span><span id="globalCount">0 / 0 odsłoniętych łącznie</span></div>
 </div>
 
-<main id="quiz"></main>
+<main id="quizRoot"></main>
 
 <footer>
-  Materiał na podstawie skryptu „Matematyka", rozdział 17 — Geometria analityczna w przestrzeni.
+  Materiał na podstawie skryptu „Matematyka" dr. Jacka Szybowskiego (AGH) — całość w trzech częściach: geometria analityczna w przestrzeni · funkcje wielu zmiennych i rachunek różniczkowy · całki krzywoliniowe, równania różniczkowe i transformata Laplace'a.
 </footer>
 
 <script>
-const data = [
+const PARTS = [
+  {
+    key: "p1",
+    theme: "theme-1",
+    chip: "§17",
+    title: 'Geometria analityczna <em>w przestrzeni</em>',
+    sub: "Część 1/3 — definicje, twierdzenia i przykłady z rachunku wektorowego, prostych i płaszczyzn w przestrzeni R³.",
+    tabLabel: "1 · Geometria w przestrzeni",
+    data: [
 {
   section: "Wektory i ich właściwości",
   items: [
@@ -419,67 +525,581 @@ const data = [
     }
   ]
 }
+]
+  },
+  {
+    key: "p2",
+    theme: "theme-2",
+    chip: "§18–21",
+    title: 'Funkcje wielu zmiennych <em>i rachunek różniczkowy</em>',
+    sub: "Część 2/3 — przestrzeń ℝⁿ, granice i ciągłość, pochodne cząstkowe i ekstrema, geometria różniczkowa krzywych i powierzchni oraz całka podwójna.",
+    tabLabel: "2 · Funkcje wielu zmiennych",
+    data: [
+{
+  section: "Przestrzeń ℝⁿ i topologia",
+  items: [
+    {
+      tag: "Definicja",
+      q: "Czym jest metryka euklidesowa i kula K(a,r) w ℝⁿ?",
+      a: `<div class="formula-box">
+          $$d(u,v) := \\sqrt{(u_1-v_1)^2+\\dots+(u_n-v_n)^2}$$
+          $$K(a,r) := \\{x \\in \\mathbb{R}^n : d(x,a) < r\\}$$
+          </div>`
+    },
+    {
+      tag: "Definicja",
+      q: "Kiedy zbiór U ⊂ ℝⁿ jest otwarty, a kiedy domknięty?",
+      a: `<p><b>Otwarty:</b> ∀a∈U ∃r>0 K(a,r)⊂U.</p>
+          <p><b>Domknięty:</b> ℝⁿ\\K jest otwarty.</p>
+          <p><b>Zwarty:</b> domknięty i ograniczony.</p>`
+    },
+    {
+      tag: "Definicja",
+      q: "Co to jest punkt brzegowy zbioru K oraz brzeg ∂K i wnętrze intK?",
+      a: `<p>a jest punktem brzegowym K ⇔ ∀r>0 K(a,r)∩K ≠ ∅ ∧ K(a,r)∩(ℝⁿ\\K) ≠ ∅.</p>
+          <p>∂K — zbiór wszystkich punktów brzegowych. intK := K \\ ∂K.</p>
+          <p class="note">K domknięty ⇔ ∂K ⊂ K. K otwarty ⇔ ∂K ∩ K = ∅ ⇔ intK = K.</p>`
+    },
+    {
+      tag: "Definicja",
+      q: "Jak definiujemy granicę ciągu wektorów i jak ją sprowadzić do granic współrzędnych?",
+      a: `<div class="formula-box">
+          $$\\lim_{k\\to\\infty} a^k = g \\iff \\lim_{k\\to\\infty} a^k_1=g_1 \\wedge \\dots \\wedge \\lim_{k\\to\\infty} a^k_n=g_n$$
+          </div>
+          <p>Czyli zbieżność wektorowa jest równoważna zbieżności po każdej współrzędnej.</p>`
+    }
+  ]
+},
+{
+  section: "Granice i ciągłość funkcji wielu zmiennych",
+  items: [
+    {
+      tag: "Definicja",
+      q: "Jak brzmi definicja Heinego granicy funkcji wielu zmiennych w punkcie a?",
+      a: `<div class="formula-box">
+          $$\\lim_{x\\to a} f(x) = g \\iff \\forall (a^k)\\subset U\\setminus\\{a\\}:\\ a^k\\to a \\Rightarrow f(a^k)\\to g$$
+          </div>`
+    },
+    {
+      tag: "Przykład",
+      q: "Dlaczego granica lim(x,y)→(0,0) xy/(x²+y²) nie istnieje?",
+      a: `<p>Biorąc ciąg (0, 1/k) otrzymujemy f → 0, a biorąc ciąg (1/k, 1/k) otrzymujemy f → 1/2.</p>
+          <p>Dwie różne granice wzdłuż różnych ciągów ⇒ granica nie istnieje.</p>`
+    },
+    {
+      tag: "Definicja",
+      q: "Kiedy funkcja f jest ciągła w punkcie a?",
+      a: `<div class="formula-box">$$f \\text{ ciągła w } a \\iff \\lim_{x\\to a} f(x) = f(a)$$</div>
+          <p>Funkcja jest ciągła, jeśli jest ciągła w każdym punkcie swojej dziedziny.</p>`
+    }
+  ]
+},
+{
+  section: "Pochodne cząstkowe i różniczkowalność",
+  items: [
+    {
+      tag: "Definicja",
+      q: "Jak definiuje się pochodną cząstkową funkcji f względem zmiennej xₖ w punkcie a?",
+      a: `<div class="formula-box">
+          $$\\frac{\\partial f}{\\partial x_k}(a) := \\lim_{h\\to 0}\\frac{f(a_1,\\dots,a_k+h,\\dots,a_n)-f(a_1,\\dots,a_n)}{h}$$
+          </div>
+          <p>W praktyce liczymy ją jak pochodną funkcji jednej zmiennej xₖ, traktując pozostałe jako stałe.</p>`
+    },
+    {
+      tag: "Definicja",
+      q: "Czym jest gradient funkcji f w punkcie a?",
+      a: `<div class="formula-box">
+          $$\\operatorname{grad} f(a) = \\left(\\frac{\\partial f}{\\partial x_1}(a),\\dots,\\frac{\\partial f}{\\partial x_n}(a)\\right)$$
+          </div>`
+    },
+    {
+      tag: "Uwaga",
+      q: "Czy istnienie wszystkich pochodnych cząstkowych gwarantuje ciągłość funkcji?",
+      a: `<p><b>Nie.</b> Przykład: f(x,y)=xy/(x²+y²) dla (x,y)≠(0,0), f(0,0)=0 ma obie pochodne cząstkowe równe 0 w (0,0), ale nie jest tam ciągła (bo granica funkcji w (0,0) nie istnieje).</p>`
+    },
+    {
+      tag: "Definicja",
+      q: "Kiedy funkcja f jest różniczkowalna w punkcie a?",
+      a: `<p>Gdy (1) istnieją wszystkie pochodne cząstkowe w a, oraz</p>
+          <div class="formula-box">
+          $$\\lim_{h\\to 0}\\frac{f(a+h)-f(a)-h\\circ \\operatorname{grad}f(a)}{\\|h\\|}=0$$
+          </div>`
+    },
+    {
+      tag: "Twierdzenie",
+      q: "Jakie są związki między klasą C¹, różniczkowalnością i ciągłością?",
+      a: `<p>f różniczkowalna w a ⇒ f ciągła w a.</p>
+          <p>f ma ciągłe wszystkie pochodne cząstkowe w a ⇒ f różniczkowalna w a.</p>
+          <p class="note">W szczególności: f klasy C¹ ⇒ f różniczkowalna (ale implikacja w drugą stronę nie zachodzi).</p>`
+    },
+    {
+      tag: "Definicja",
+      q: "Czym jest różniczka Df(a) funkcji f w punkcie a?",
+      a: `<div class="formula-box">
+          $$Df(a)(x_1,\\dots,x_n) = \\frac{\\partial f}{\\partial x_1}(a)x_1+\\dots+\\frac{\\partial f}{\\partial x_n}(a)x_n$$
+          </div>
+          <p>Pozwala na przybliżanie: f(x) ≈ f(a) + Df(a)(x−a) dla x bliskich a.</p>`
+    },
+    {
+      tag: "Wzór",
+      q: "Jak wygląda wzór na pochodną funkcji złożonej F(t)=g(f₁(t),...,fₙ(t))?",
+      a: `<div class="formula-box">
+          $$F'(t_0) = \\frac{\\partial g}{\\partial x_1}(\\dots)f_1'(t_0)+\\dots+\\frac{\\partial g}{\\partial x_n}(\\dots)f_n'(t_0)$$
+          </div>`
+    },
+    {
+      tag: "Definicja",
+      q: "Jak definiuje się pochodną kierunkową funkcji f w punkcie a wzdłuż wektora v, i jak ją obliczyć przy ciągłych pochodnych cząstkowych?",
+      a: `<div class="formula-box">
+          $$\\frac{\\partial f}{\\partial \\vec v}(a) = \\lim_{h\\to 0}\\frac{f(a+h\\vec v)-f(a)}{h}$$
+          $$\\frac{\\partial f}{\\partial \\vec v}(a) = \\operatorname{grad} f(a)\\circ \\vec v$$
+          </div>`
+    },
+    {
+      tag: "Definicja",
+      q: "Co to jest macierz Hessego (hesjan) funkcji f w punkcie a?",
+      a: `<div class="formula-box">
+          $$H_f(a) = \\left[\\frac{\\partial^2 f}{\\partial x_l \\partial x_k}(a)\\right]_{k,l=1,\\dots,n}$$
+          </div>
+          <p>Twierdzenie Schwarza: jeśli pochodne mieszane są ciągłe w a, to są równe ⇒ hesjan jest symetryczny.</p>`
+    }
+  ]
+},
+{
+  section: "Ekstrema funkcji wielu zmiennych",
+  items: [
+    {
+      tag: "Twierdzenie",
+      q: "Jaki jest warunek konieczny istnienia ekstremum lokalnego?",
+      a: `<p>Jeśli istnieją pochodne cząstkowe i f ma w a ekstremum lokalne, to</p>
+          <div class="formula-box">$$\\frac{\\partial f}{\\partial x_1}(a)=\\dots=\\frac{\\partial f}{\\partial x_n}(a)=0$$</div>
+          <p>Taki punkt nazywamy punktem krytycznym. <span class="note">Uwaga: warunek nie jest wystarczający (np. f(x,y)=x³+y² w (0,0)).</span></p>`
+    },
+    {
+      tag: "Twierdzenie",
+      q: "Jaki jest warunek wystarczający istnienia ekstremum lokalnego (poprzez minory główne hesjanu)?",
+      a: `<p>Niech A₁,...,Aₙ to minory główne hesjanu Hf(a) w punkcie krytycznym a. Wówczas:</p>
+          <p>(1) det A₁>0,...,det Aₙ>0 ⇒ silne <b>minimum</b> lokalne.</p>
+          <p>(2) det A₁<0, det A₂>0,... (na przemian) ⇒ silne <b>maksimum</b> lokalne.</p>
+          <p>(3) Jeśli macierz jest nieokreślona ⇒ <b>brak ekstremum</b>.</p>
+          <p>(4) Jeśli jakiś det Aₖ=0 ⇒ kryterium nie rozstrzyga.</p>`
+    },
+    {
+      tag: "Twierdzenie",
+      q: "Co mówi twierdzenie Weierstrassa o osiąganiu kresów?",
+      a: `<p>Jeśli K ⊂ ℝⁿ jest zbiorem zwartym, a f: K→ℝ jest ciągła, to f osiąga w K swoje kresy — istnieją punkty minimum i maksimum globalnego.</p>`
+    },
+    {
+      tag: "Procedura",
+      q: "Jak znaleźć ekstrema globalne funkcji f na zbiorze zwartym D ⊂ ℝ²?",
+      a: `<p>1. Na zbiorze otwartym intD szukamy punktów krytycznych (i punktów bez pochodnych).</p>
+          <p>2. Dzielimy brzeg ∂D na kawałki parametryzowane funkcjami g₁,...,gₙ.</p>
+          <p>3. Szukamy ekstremów funkcji jednej zmiennej f∘g₁,...,f∘gₛ na brzegu.</p>
+          <p>4. Porównujemy wartości f we wszystkich znalezionych punktach — wśród nich są wartości ekstremalne.</p>`
+    }
+  ]
+},
+{
+  section: "Geometria różniczkowa krzywych i powierzchni",
+  items: [
+    {
+      tag: "Definicja",
+      q: "Czym różni się łuk od łuku regularnego?",
+      a: `<p><b>Łuk</b> — krzywa, dla której istnieje parametryzacja będąca iniekcją (bez samoprzecięć).</p>
+          <p><b>Łuk regularny</b> — dodatkowo: pochodne x', y' są ciągłe oraz dla każdego t zachodzi x'(t)≠0 lub y'(t)≠0 (brak nagłych „zwrotów”).</p>
+          <p class="note">Przykład: cykloida jest łukiem, ale nie regularnym (w punkcie t=2π znika x' i y').</p>`
+    },
+    {
+      tag: "Wzór",
+      q: "Jakie jest równanie stycznej i normalnej do krzywej F(x,y)=0 na płaszczyźnie w punkcie P=(x₀,y₀)?",
+      a: `<div class="formula-box">
+          $$k:\\ \\frac{\\partial F}{\\partial x}(x_0,y_0)(x-x_0)+\\frac{\\partial F}{\\partial y}(x_0,y_0)(y-y_0)=0$$
+          $$n:\\ \\frac{\\partial F}{\\partial y}(x_0,y_0)(x-x_0)-\\frac{\\partial F}{\\partial x}(x_0,y_0)(y-y_0)=0$$
+          </div>`
+    },
+    {
+      tag: "Wzór",
+      q: "Jak wygląda styczna i płaszczyzna normalna do łuku regularnego w przestrzeni (parametryzacja φ(t))?",
+      a: `<div class="formula-box">
+          $$k:\\ (x,y,z)=(\\tilde x(t_0),\\tilde y(t_0),\\tilde z(t_0))+s\\,(\\tilde x'(t_0),\\tilde y'(t_0),\\tilde z'(t_0))$$
+          $$\\pi_n:\\ \\tilde x'(t_0)(x-\\tilde x(t_0))+\\tilde y'(t_0)(y-\\tilde y(t_0))+\\tilde z'(t_0)(z-\\tilde z(t_0))=0$$
+          </div>`
+    },
+    {
+      tag: "Wzór",
+      q: "Jak wyznaczyć płaszczyznę styczną i normalną do powierzchni S: F(x,y,z)=0 w punkcie P?",
+      a: `<div class="formula-box">
+          $$\\pi:\\ \\frac{\\partial F}{\\partial x}(P)(x-x_0)+\\frac{\\partial F}{\\partial y}(P)(y-y_0)+\\frac{\\partial F}{\\partial z}(P)(z-z_0)=0$$
+          </div>
+          <p>Prosta normalna n biegnie przez P w kierunku wektora ( ∂F/∂x, ∂F/∂y, ∂F/∂z ) w P.</p>`
+    },
+    {
+      tag: "Definicja",
+      q: "Co to jest płat i jaki warunek czyni powierzchnię regularną?",
+      a: `<p>Płat to zbiór wartości homeomorfizmu φ: D⊂ℝ²→ℝ³.</p>
+          <p>Powierzchnia jest regularna, gdy lokalnie da się ją pokryć takimi płatami klasy C¹, dla których grad x(u₀)×grad y(v₀) ≠ 0.</p>`
+    }
+  ]
+},
+{
+  section: "Całka podwójna",
+  items: [
+    {
+      tag: "Definicja",
+      q: "Co geometrycznie reprezentuje całka podwójna ∬D f(x,y)dxdy dla f≥0?",
+      a: `<p>Objętość bryły ograniczonej od dołu płaszczyzną z=0, po bokach powierzchnią {(x,y,z): (x,y)∈∂D}, a od góry wykresem funkcji f.</p>`
+    },
+    {
+      tag: "Twierdzenie",
+      q: "Jak zamienia się całkę podwójną na obszarze normalnym D={(x,y): a≤x≤b, g(x)≤y≤h(x)} na całkę iterowaną?",
+      a: `<div class="formula-box">
+          $$\\iint_D f(x,y)\\,dxdy = \\int_a^b dx \\int_{g(x)}^{h(x)} f(x,y)\\,dy$$
+          </div>`
+    },
+    {
+      tag: "Twierdzenie",
+      q: "Jak wygląda wzór na zamianę współrzędnych na biegunowe w całce podwójnej?",
+      a: `<div class="formula-box">
+          $$\\iint_D f(x,y)\\,dxdy = \\iint_{\\Delta} f(r\\cos\\varphi, r\\sin\\varphi)\\, r\\, dr\\, d\\varphi$$
+          </div>
+          <p>gdzie x=r cosφ, y=r sinφ — kluczowy jest dodatkowy czynnik <i>r</i> (jakobian przekształcenia).</p>`
+    },
+    {
+      tag: "Definicja",
+      q: "Czym jest wartość średnia funkcji f na zbiorze D i co mówi o niej twierdzenie o wartości średniej?",
+      a: `<div class="formula-box">$$\\text{wartość średnia} = \\frac{1}{|D|}\\iint_D f(x,y)\\,dxdy$$</div>
+          <p>Twierdzenie: dla D obszaru normalnego i f ciągłej istnieje punkt (x₀,y₀)∈D, w którym f przyjmuje dokładnie tę wartość średnią.</p>`
+    },
+    {
+      tag: "Wzór",
+      q: "Jak wyrazić pole obszaru D oraz objętość bryły między wykresami f i g za pomocą całki podwójnej?",
+      a: `<div class="formula-box">
+          $$|D| = \\iint_D dxdy$$
+          $$|B| = \\iint_D \\big(f(x,y)-g(x,y)\\big)\\,dxdy$$
+          </div>`
+    },
+    {
+      tag: "Wzór",
+      q: "Jaki jest wzór na pole powierzchni płata będącego wykresem funkcji f na obszarze D?",
+      a: `<div class="formula-box">
+          $$|\\Sigma| = \\iint_D \\sqrt{1+\\left(\\frac{\\partial f}{\\partial x}\\right)^2+\\left(\\frac{\\partial f}{\\partial y}\\right)^2}\\,dxdy$$
+          </div>`
+    }
+  ]
+}
+]
+  },
+  {
+    key: "p3",
+    theme: "theme-3",
+    chip: "§22–24",
+    title: "Całki krzywoliniowe, <em>równania różniczkowe</em> i transformata Laplace'a",
+    sub: "Część 3/3 — całka krzywoliniowa płaska skierowana i wzór Greena, równania różniczkowe zwyczajne oraz podstawy transformaty Laplace'a.",
+    tabLabel: "3 · Równania różniczkowe",
+    data: [
+{
+  section: "Całka krzywoliniowa płaska skierowana",
+  items: [
+    {
+      tag: "Definicja",
+      q: "Co to znaczy, że łuk jest skierowany od A do B i kiedy parametryzacja jest zgodna z tą orientacją?",
+      a: `<p>Jeśli φ(a)=A i φ(b)=B, to A jest początkiem, a B końcem łuku — łuk jest skierowany od A do B, oznaczany ÂB.</p>
+          <p>Inna parametryzacja φ̃ jest zgodna z orientacją, gdy φ̃(ã)=A i φ̃(b̃)=B (a niezgodna, gdy je zamienia).</p>`
+    },
+    {
+      tag: "Definicja",
+      q: "Jak definiuje się całkę krzywoliniową skierowaną ∫ÂB P dx + Q dy?",
+      a: `<div class="formula-box">
+          $$\\int_{\\widehat{AB}} P\\,dx+Q\\,dy = \\int_a^b \\Big(P(x(t),y(t))x'(t)+Q(x(t),y(t))y'(t)\\Big)\\,dt$$
+          </div>
+          <p>gdzie φ=(x,y):⟨a,b⟩→ℝ² jest parametryzacją zgodną z orientacją łuku.</p>`
+    },
+    {
+      tag: "Własność",
+      q: "Co się dzieje z wartością całki krzywoliniowej skierowanej przy odwróceniu orientacji łuku?",
+      a: `<div class="formula-box">
+          $$\\int_{\\widehat{BA}} P\\,dx+Q\\,dy = -\\int_{\\widehat{AB}} P\\,dx+Q\\,dy$$
+          </div>
+          <p>Dodatkowo całka jest addytywna względem rozbicia łuku punktem pośrednim C oraz liniowa względem P, Q.</p>`
+    },
+    {
+      tag: "Twierdzenie",
+      q: "Co mówi wzór Greena i jakie założenia musi spełniać obszar D?",
+      a: `<p>Ω⊂ℝ² zbiór otwarty, D⊂Ω obszar normalny względem obu osi, L=∂D zorientowana tak, by D leżał po lewej stronie, P,Q klasy C¹. Wtedy:</p>
+          <div class="formula-box">
+          $$\\oint_L P\\,dx+Q\\,dy = \\iint_D \\left(\\frac{\\partial Q}{\\partial x}-\\frac{\\partial P}{\\partial y}\\right)dxdy$$
+          </div>
+          <p class="note">Pozwala zamienić całkę po krzywej zamkniętej na całkę podwójną po obszarze wewnątrz.</p>`
+    }
+  ]
+},
+{
+  section: "Równania różniczkowe zwyczajne — podstawy",
+  items: [
+    {
+      tag: "Definicja",
+      q: "Czym jest równanie różniczkowe rzędu n oraz jego rozwiązanie ogólne i szczególne?",
+      a: `<p>Równanie postaci F(x, y, y', ..., y⁽ⁿ⁾)=0, koniecznie zawierające y⁽ⁿ⁾.</p>
+          <p><b>Rozwiązanie szczególne</b> — pojedyncza funkcja spełniająca równanie.</p>
+          <p><b>Rozwiązanie ogólne</b> — zbiór wszystkich rozwiązań (rodzina sparametryzowana n stałymi).</p>
+          <p class="note">Rozwiązanie osobliwe — szczególne, którego nie da się uzyskać z rozwiązania ogólnego dla żadnych wartości stałych.</p>`
+    },
+    {
+      tag: "Definicja",
+      q: "Co to jest zagadnienie Cauchy'ego (zagadnienie początkowe) i kiedy ma jednoznaczne rozwiązanie?",
+      a: `<div class="formula-box">$$\\begin{cases}y'=f(x,y)\\\\ y(x_0)=y_0\\end{cases}$$</div>
+          <p>Twierdzenie: jeśli D⊂ℝ² otwarty, (x₀,y₀)∈D, f∈C(D) oraz ∂f/∂y∈C(D), to istnieje otoczenie punktu (x₀,y₀), w którym zagadnienie ma dokładnie jedno rozwiązanie.</p>`
+    },
+    {
+      tag: "Wzór",
+      q: "Jak rozwiązuje się równanie o zmiennych rozdzielonych P(x)dx + Q(y)dy = 0?",
+      a: `<div class="formula-box">
+          $$\\int P(x)\\,dx + \\int Q(y)\\,dy = C,\\quad C\\in\\mathbb{R}$$
+          </div>`
+    },
+    {
+      tag: "Wzór",
+      q: "Jaki jest ogólny wzór na rozwiązanie równania liniowego rzędu pierwszego y'+p(x)y=q(x), oraz jaki jest czynnik całkujący?",
+      a: `<p>Czynnik całkujący: μ(x) = e^(∫p(x)dx).</p>
+          <div class="formula-box">
+          $$y = e^{-\\int p(x)dx}\\left(C+\\int q(x)\\,e^{\\int p(x)dx}\\,dx\\right)$$
+          </div>`
+    }
+  ]
+},
+{
+  section: "Równania liniowe rzędu n o stałych współczynnikach",
+  items: [
+    {
+      tag: "Definicja",
+      q: "Co to jest równanie charakterystyczne równania liniowego jednorodnego rzędu n?",
+      a: `<p>Dla równania y⁽ⁿ⁾+a₁y⁽ⁿ⁻¹⁾+...+aₙy=0 rozpatrujemy:</p>
+          <div class="formula-box">$$\\lambda^n+a_1\\lambda^{n-1}+\\dots+a_{n-1}\\lambda+a_n=0$$</div>`
+    },
+    {
+      tag: "Twierdzenie",
+      q: "Jak budujemy układ fundamentalny rozwiązań na podstawie pierwiastków równania charakterystycznego?",
+      a: `<p>(a) pierwiastek pojedynczy rzeczywisty λₖ → rozwiązanie e^(λₖx).</p>
+          <p>(b) para pierwiastków zespolonych a±ib → e^(ax)cos(bx) i e^(ax)sin(bx).</p>
+          <p>(c) pierwiastek rzeczywisty λₖ krotności r → e^(λₖx), xe^(λₖx), ..., x^(r-1)e^(λₖx).</p>
+          <p>(d) para zespolona a±ib krotności r → analogicznie z mnożnikami 1, x, ..., x^(r-1) przy cos i sin.</p>
+          <p>Rozwiązanie ogólne: y = C₁y₁+...+Cₙyₙ.</p>`
+    },
+    {
+      tag: "Przykład",
+      q: "Jakie jest rozwiązanie ogólne równania y'' + y = 0?",
+      a: `<p>Równanie charakterystyczne: λ²+1=0 ⇒ λ=i ∨ λ=−i (para zespolona a=0, b=1).</p>
+          <div class="formula-box">$$y = C_1\\cos x + C_2\\sin x$$</div>`
+    },
+    {
+      tag: "Twierdzenie",
+      q: "Na czym polega metoda uzmienniania stałych dla równania niejednorodnego?",
+      a: `<p>Jeśli ROJ to y=C₁y₁+...+Cₙyₙ, to szukamy RON w postaci y=C₁(x)y₁+...+Cₙ(x)yₙ, gdzie pochodne Cᵢ'(x) spełniają układ równań z prawą stroną zerową poza ostatnim wierszem równym f(x) (rozwiązywany np. wzorami Cramera).</p>`
+    },
+    {
+      tag: "Twierdzenie",
+      q: "Jakie są przypadki metody przewidywań (współczynników nieoznaczonych) dla f(x)=P(x)e^(ax)?",
+      a: `<p><b>2a°</b> gdy W(a)≠0: szukamy y₁ = Q(x)e^(ax), deg Q = deg P.</p>
+          <p><b>2b°</b> gdy a jest k-krotnym pierwiastkiem W: szukamy y₁ = xᵏQ(x)e^(ax).</p>
+          <p class="note">Analogiczne przypadki istnieją dla f(x)=P(x) (wielomian) oraz f(x)=e^(ax)[P₁cos bx+P₂sin bx].</p>`
+    }
+  ]
+},
+{
+  section: "Transformata Laplace'a",
+  items: [
+    {
+      tag: "Definicja",
+      q: "Jak definiuje się transformatę Laplace'a funkcji f?",
+      a: `<div class="formula-box">
+          $$\\Psi(s) = \\mathcal{L}[f(t)](s) := \\int_0^{+\\infty} f(t)e^{-st}\\,dt$$
+          </div>
+          <p>określona dla s ze zbioru D, dla którego ta całka jest zbieżna.</p>`
+    },
+    {
+      tag: "Definicja",
+      q: "Kiedy funkcja f jest „oryginałem” w kontekście transformaty Laplace'a?",
+      a: `<p>(1) spełnia warunki Dirichleta na każdym ograniczonym przedziale w (0,+∞);</p>
+          <p>(2) istnieją C∈ℝ, M>0 takie, że |f(t)| ≤ Me^(Ct) dla wszystkich t (wzrost wykładniczy ograniczony).</p>`
+    },
+    {
+      tag: "Definicja",
+      q: "Czym jest splot funkcji f∗g i jaka jest jego kluczowa własność dla transformaty Laplace'a?",
+      a: `<div class="formula-box">
+          $$(f*g)(t) := \\int_{-\\infty}^{+\\infty} f(s)g(t-s)\\,ds$$
+          $$\\mathcal{L}[(f*g)(t)](s) = \\mathcal{L}[f(t)](s)\\cdot \\mathcal{L}[g(t)](s)$$
+          </div>
+          <p>Splot jest przemienny i łączny — transformata zamienia splot w zwykłe mnożenie.</p>`
+    },
+    {
+      tag: "Tabela",
+      q: "Jakie są transformaty Laplace'a podstawowych funkcji: 1, e^(at), cos(bt), sin(bt), tⁿ?",
+      a: `<table>
+          <tr><th>f(t)</th><th>F(s)=ℒ[f(t)](s)</th></tr>
+          <tr><td>1</td><td>1/s</td></tr>
+          <tr><td>e<sup>at</sup></td><td>1/(s−a)</td></tr>
+          <tr><td>cos bt</td><td>s/(s²+b²)</td></tr>
+          <tr><td>sin bt</td><td>b/(s²+b²)</td></tr>
+          <tr><td>tⁿ</td><td>n!/sⁿ⁺¹</td></tr>
+          <tr><td>tⁿe<sup>at</sup></td><td>n!/(s−a)ⁿ⁺¹</td></tr>
+          </table>`
+    },
+    {
+      tag: "Wzór",
+      q: "Jak transformata Laplace'a działa na pochodną oryginału f⁽ᵐ⁾(t)?",
+      a: `<div class="formula-box">
+          $$\\mathcal{L}[f^{(m)}(t)](s) = s^m\\mathcal{L}[f(t)](s) - \\sum_{k=1}^{m} s^{m-k}\\lim_{t\\to 0^+}f^{(k-1)}(t)$$
+          </div>
+          <p class="note">To podstawowe narzędzie do rozwiązywania równań różniczkowych liniowych metodą transformaty Laplace'a — sprowadza ODE do równania algebraicznego.</p>`
+    },
+    {
+      tag: "Twierdzenie",
+      q: "Co mówi twierdzenie o jednoznaczności transformacji Laplace'a i do czego pozwala je wykorzystać?",
+      a: `<p>Dla f, g ciągłych oryginałów: ℒ[f(t)] = ℒ[g(t)] ⇒ f ≡ g.</p>
+          <p>Dzięki temu można zdefiniować transformatę odwrotną ℒ⁻¹ i odzyskiwać rozwiązanie y(x) równania różniczkowego z jego obrazu L[y](s), np. metodą rozkładu na ułamki proste.</p>`
+    }
+  ]
+}
+]
+  }
 ];
 
-const quiz = document.getElementById('quiz');
-let qIndex = 0;
-let total = 0;
-data.forEach(d => total += d.items.length);
-document.getElementById('count').textContent = `0 / ${total} odsłoniętych`;
+// global state: opened question ids per part
+const openedByPart = {};
+const totalByPart = {};
+PARTS.forEach(p => {
+  let t = 0;
+  p.data.forEach(s => t += s.items.length);
+  totalByPart[p.key] = t;
+  openedByPart[p.key] = new Set();
+});
 
-let opened = new Set();
+let currentPartIndex = 0;
 
-data.forEach(section => {
-  const div = document.createElement('div');
-  div.className = 'section-divider';
-  div.textContent = section.section;
-  quiz.appendChild(div);
+const tabsEl = document.getElementById('tabs');
+const quizRoot = document.getElementById('quizRoot');
+const body = document.body;
 
-  section.items.forEach(item => {
-    qIndex++;
-    const card = document.createElement('div');
-    card.className = 'card';
-    const idStr = String(qIndex).padStart(2,'0');
-    card.innerHTML = `
-      <div class="q-row">
-        <div class="q-num">${idStr}</div>
-        <div class="q-text"><span class="q-tag">${item.tag}</span>${item.q}</div>
-        <div class="chevron">›</div>
-      </div>
-      <div class="answer"><div class="answer-inner">${item.a}</div></div>
-    `;
-    const row = card.querySelector('.q-row');
-    row.addEventListener('click', () => {
-      const wasOpen = card.classList.contains('open');
-      card.classList.toggle('open');
-      if(!wasOpen && !opened.has(idStr)){
-        opened.add(idStr);
-        document.getElementById('count').textContent = `${opened.size} / ${total} odsłoniętych`;
-        document.getElementById('fill').style.width = (opened.size/total*100)+'%';
-      }
-      if(window.renderMathInElement){
-        renderMathInElement(card, {
-          delimiters: [
-            {left: "$$", right: "$$", display: true},
-            {left: "$", right: "$", display: false}
-          ]
-        });
-      }
-    });
-    quiz.appendChild(card);
+function buildTabs(){
+  tabsEl.innerHTML = '';
+  PARTS.forEach((p, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'tab-btn' + (idx === currentPartIndex ? ' active' : '');
+    btn.innerHTML = `<span class="dot"></span>${p.tabLabel} <span class="tcount">(${openedByPart[p.key].size}/${totalByPart[p.key]})</span>`;
+    btn.addEventListener('click', () => switchPart(idx));
+    tabsEl.appendChild(btn);
   });
+}
+
+function buildPart(p){
+  const wrap = document.createElement('div');
+  wrap.className = 'part-block';
+  wrap.id = 'block-' + p.key;
+
+  p.data.forEach(section => {
+    const div = document.createElement('div');
+    div.className = 'section-divider';
+    div.textContent = section.section;
+    wrap.appendChild(div);
+
+    section.items.forEach((item, i) => {
+      const idStr = p.key + '-' + (wrap.querySelectorAll('.card').length + 1).toString().padStart(2,'0');
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.dataset.id = idStr;
+      const num = wrap.querySelectorAll('.card').length + 1;
+      card.innerHTML = `
+        <div class="q-row">
+          <div class="q-num">${String(num).padStart(2,'0')}</div>
+          <div class="q-text"><span class="q-tag">${item.tag}</span>${item.q}</div>
+          <div class="chevron">&rsaquo;</div>
+        </div>
+        <div class="answer"><div class="answer-inner">${item.a}</div></div>
+      `;
+      const row = card.querySelector('.q-row');
+      row.addEventListener('click', () => {
+        const wasOpen = card.classList.contains('open');
+        card.classList.toggle('open');
+        if(!wasOpen && !openedByPart[p.key].has(idStr)){
+          openedByPart[p.key].add(idStr);
+          updateProgress();
+          buildTabs();
+        }
+        if(window.renderMathInElement){
+          renderMathInElement(card, {
+            delimiters: [
+              {left: "$$", right: "$$", display: true},
+              {left: "$", right: "$", display: false}
+            ]
+          });
+        }
+      });
+      wrap.appendChild(card);
+    });
+  });
+
+  // prev/next nav
+  const nav = document.createElement('div');
+  nav.className = 'part-nav';
+  const prevBtn = document.createElement('button');
+  prevBtn.textContent = '\u2039 Poprzednia część';
+  prevBtn.addEventListener('click', () => switchPart(currentPartIndex - 1));
+  const nextBtn = document.createElement('button');
+  nextBtn.textContent = 'Następna część \u203a';
+  nextBtn.addEventListener('click', () => switchPart(currentPartIndex + 1));
+  nav.appendChild(prevBtn);
+  nav.appendChild(nextBtn);
+  wrap.appendChild(nav);
+
+  return wrap;
+}
+
+function updateProgress(){
+  const p = PARTS[currentPartIndex];
+  const opened = openedByPart[p.key].size;
+  const total = totalByPart[p.key];
+  document.getElementById('count').textContent = `${opened} / ${total} odsłoniętych w tej części`;
+  document.getElementById('fill').style.width = (total ? opened/total*100 : 0) + '%';
+
+  let globalOpened = 0, globalTotal = 0;
+  PARTS.forEach(pp => {
+    globalOpened += openedByPart[pp.key].size;
+    globalTotal += totalByPart[pp.key];
+  });
+  document.getElementById('globalCount').textContent = `${globalOpened} / ${globalTotal} odsłoniętych łącznie`;
+}
+
+function switchPart(idx){
+  if(idx < 0 || idx >= PARTS.length) return;
+  currentPartIndex = idx;
+  const p = PARTS[idx];
+
+  body.className = p.theme;
+  document.getElementById('chipLabel').textContent = p.chip;
+  document.getElementById('mainTitle').innerHTML = p.title;
+  document.getElementById('mainSub').textContent = p.sub;
+
+  document.querySelectorAll('.part-block').forEach(b => b.classList.remove('active'));
+  const block = document.getElementById('block-' + p.key);
+  block.classList.add('active');
+
+  // nav button disabled states
+  const navButtons = block.querySelectorAll('.part-nav button');
+  navButtons[0].disabled = idx === 0;
+  navButtons[1].disabled = idx === PARTS.length - 1;
+
+  buildTabs();
+  updateProgress();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+// build all parts up front
+PARTS.forEach(p => {
+  quizRoot.appendChild(buildPart(p));
 });
 
-window.addEventListener('load', () => {
-  if(window.renderMathInElement){
-    renderMathInElement(document.body, {
-      delimiters: [
-        {left: "$$", right: "$$", display: true},
-        {left: "$", right: "$", display: false}
-      ]
-    });
-  }
-});
+buildTabs();
+switchPart(0);
 </script>
 </body>
 </html>
