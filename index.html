@@ -2,652 +2,484 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<title>Wyścigi</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Geometria analityczna w przestrzeni — test</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
 <style>
-  * { margin:0; padding:0; box-sizing:border-box; font-family: 'Segoe UI', Arial, sans-serif; }
-  body { background:#1a1d23; color:#eee; overflow:hidden; }
-  #ui { position:absolute; top:0; left:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center; flex-direction:column; z-index:10; }
-  canvas { display:block; background:#3a7d3a; }
-  h1 { font-size:48px; margin-bottom:30px; letter-spacing:4px; color:#fff; text-shadow:0 0 20px #f7c531; }
-  .menu-btn { width:280px; padding:16px; margin:8px; font-size:20px; border:none; border-radius:10px; background:#f7c531; color:#222; cursor:pointer; font-weight:bold; transition:.2s; }
-  .menu-btn:hover { background:#ffe066; transform:scale(1.05); }
-  .menu-btn.secondary { background:#444; color:#fff; }
-  .menu-btn.secondary:hover { background:#666; }
-  .panel { background:#22262e; padding:40px 50px; border-radius:16px; box-shadow:0 0 40px rgba(0,0,0,.5); text-align:center; }
-  .levels { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; max-width:400px;}
-  .lvl-btn { width:80px; height:80px; font-size:24px; }
-  #hud { position:absolute; top:10px; left:10px; color:#fff; font-size:20px; background:rgba(0,0,0,.4); padding:10px 16px; border-radius:8px; z-index:5; display:none; }
-  #hud2 { position:absolute; top:10px; right:10px; color:#fff; font-size:20px; background:rgba(0,0,0,.4); padding:10px 16px; border-radius:8px; z-index:5; display:none; }
-  #msg { position:absolute; top:40%; left:50%; transform:translate(-50%,-50%); font-size:48px; color:#fff; text-shadow:0 0 20px #f7c531; z-index:6; display:none; text-align:center; }
-  #backBtn { position:absolute; bottom:10px; left:10px; z-index:8; display:none; }
-  small { color:#aaa; display:block; margin-top:6px; font-size:13px; }
+  :root{
+    --ink:#1b2430;
+    --paper:#f6f3ea;
+    --paper2:#efe9d8;
+    --rule:#c9bfa0;
+    --accent:#9a3324;
+    --accent2:#2f5d50;
+    --gold:#b8893f;
+    --card:#fffdf7;
+    --shadow: 0 1px 0 rgba(0,0,0,.05), 0 8px 24px rgba(40,30,10,.08);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 10% -10%, #fff7e6 0%, transparent 60%),
+      repeating-linear-gradient(0deg, transparent, transparent 37px, rgba(154,51,36,.045) 38px),
+      var(--paper);
+    color:var(--ink);
+    font-family: "Iowan Old Style","Palatino Linotype", Georgia, "Times New Roman", serif;
+    min-height:100vh;
+    padding-bottom:80px;
+  }
+  .margin-line{
+    position:fixed; top:0; bottom:0; left:64px; width:1px;
+    background:rgba(154,51,36,.25);
+    z-index:0; pointer-events:none;
+  }
+  header{
+    position:relative;
+    padding:56px 24px 30px 96px;
+    max-width:980px; margin:0 auto;
+  }
+  .eyebrow{
+    font-family: "Courier New", monospace;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--accent2);
+    font-size:12.5px;
+    margin-bottom:14px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .eyebrow::before{
+    content:"§17";
+    background:var(--accent2);
+    color:var(--paper);
+    padding:2px 8px;
+    border-radius:2px;
+    font-style:normal;
+  }
+  h1{
+    font-size:clamp(32px,5vw,52px);
+    line-height:1.05;
+    margin:0 0 12px 0;
+    font-weight:600;
+    letter-spacing:-.01em;
+    color:var(--ink);
+  }
+  h1 em{
+    font-style:italic;
+    color:var(--accent);
+  }
+  .sub{
+    max-width:620px;
+    font-size:17px;
+    line-height:1.55;
+    color:#4b4438;
+    border-left:3px solid var(--gold);
+    padding-left:16px;
+  }
+  .progress-wrap{
+    max-width:980px; margin:0 auto; padding:0 24px 0 96px;
+  }
+  .progress-bar{
+    height:6px; width:100%; background:var(--paper2);
+    border-radius:3px; overflow:hidden;
+    border:1px solid var(--rule);
+  }
+  .progress-fill{
+    height:100%; width:0%;
+    background:linear-gradient(90deg,var(--gold),var(--accent));
+    transition:width .35s ease;
+  }
+  .progress-label{
+    font-family:"Courier New",monospace;
+    font-size:12px; color:#7a7263; margin-top:8px;
+    display:flex; justify-content:space-between;
+  }
+  main{
+    max-width:980px; margin:36px auto 0; padding:0 24px 0 96px;
+    display:flex; flex-direction:column; gap:22px;
+    position:relative; z-index:1;
+  }
+  .section-divider{
+    display:flex; align-items:center; gap:14px;
+    margin:38px 0 4px;
+    color:var(--accent2);
+    font-family:"Courier New",monospace;
+    font-size:13px; letter-spacing:.1em; text-transform:uppercase;
+  }
+  .section-divider::after{
+    content:""; flex:1; height:1px; background:var(--rule);
+  }
+  .card{
+    background:var(--card);
+    border:1px solid var(--rule);
+    border-radius:6px;
+    box-shadow:var(--shadow);
+    overflow:hidden;
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .card:hover{
+    transform:translateY(-1px);
+    box-shadow:0 2px 0 rgba(0,0,0,.05), 0 14px 30px rgba(40,30,10,.12);
+  }
+  .q-row{
+    display:flex; align-items:flex-start; gap:16px;
+    padding:20px 22px;
+    cursor:pointer;
+    user-select:none;
+  }
+  .q-num{
+    flex:0 0 auto;
+    font-family:"Courier New",monospace;
+    font-size:13px;
+    color:var(--accent);
+    border:1px solid var(--accent);
+    border-radius:50%;
+    width:30px; height:30px;
+    display:flex; align-items:center; justify-content:center;
+    margin-top:2px;
+  }
+  .q-text{
+    flex:1;
+    font-size:17.5px;
+    line-height:1.5;
+    color:var(--ink);
+  }
+  .q-tag{
+    font-family:"Courier New",monospace;
+    font-size:10.5px;
+    color:#8a8270;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    display:block;
+    margin-bottom:6px;
+  }
+  .chevron{
+    flex:0 0 auto;
+    font-size:20px;
+    color:var(--gold);
+    transition:transform .25s ease;
+    margin-top:2px;
+  }
+  .card.open .chevron{ transform:rotate(90deg); }
+  .answer{
+    max-height:0;
+    overflow:hidden;
+    transition:max-height .35s ease;
+    background:
+      linear-gradient(180deg, var(--paper2), #efe7d2);
+    border-top:1px dashed var(--rule);
+  }
+  .card.open .answer{ max-height:900px; }
+  .answer-inner{
+    padding:18px 22px 24px 22px;
+    font-size:16.5px;
+    line-height:1.6;
+    color:#33291f;
+  }
+  .answer-inner .formula-box{
+    background:var(--card);
+    border:1px solid var(--rule);
+    border-left:4px solid var(--accent);
+    border-radius:4px;
+    padding:12px 16px;
+    margin:10px 0;
+    overflow-x:auto;
+  }
+  .answer-inner p{ margin:8px 0; }
+  .answer-inner .note{
+    font-size:14px; color:#7a7263; font-style:italic;
+  }
+  footer{
+    max-width:980px; margin:50px auto 0; padding:24px 24px 0 96px;
+    color:#8a8270;
+    font-family:"Courier New",monospace;
+    font-size:12.5px;
+    border-top:1px solid var(--rule);
+  }
+  @media (max-width:680px){
+    .margin-line{left:18px;}
+    header,.progress-wrap,main,footer{padding-left:30px;}
+    .q-text{font-size:16px;}
+  }
 </style>
 </head>
 <body>
+<div class="margin-line"></div>
 
-<div id="ui">
-  <div class="panel" id="mainMenu">
-    <h1>WYŚCIGI</h1>
-    <button class="menu-btn" onclick="showLevels('race')">Graj (vs 3 boty)</button>
-    <button class="menu-btn" onclick="startDuel()">Duel (WSAD vs Strzałki)<br><small style="color:#333">Wyścig 2 graczy</small></button>
-    <button class="menu-btn" onclick="showLevels('solo')">Solo (na czas)</button>
-  </div>
+<header>
+  <div class="eyebrow">Skrypt · dr Jacek Szybowski · AGH</div>
+  <h1>Geometria analityczna <em>w przestrzeni</em></h1>
+  <p class="sub">Część 1/3 — definicje, twierdzenia i przykłady z rachunku wektorowego, prostych i płaszczyzn w przestrzeni R³. Kliknij pytanie, aby odsłonić odpowiedź.</p>
+</header>
 
-  <div class="panel" id="levelMenu" style="display:none;">
-    <h1 style="font-size:32px;">Wybierz poziom</h1>
-    <div class="levels">
-      <button class="menu-btn lvl-btn" onclick="startGame(0)">1</button>
-      <button class="menu-btn lvl-btn" onclick="startGame(1)">2</button>
-      <button class="menu-btn lvl-btn" onclick="startGame(2)">3</button>
-      <button class="menu-btn lvl-btn" onclick="startGame(3)">4</button>
-      <button class="menu-btn lvl-btn" onclick="startGame(4)">5</button>
-    </div>
-    <button class="menu-btn secondary" onclick="backToMain()">Powrót</button>
-  </div>
+<div class="progress-wrap">
+  <div class="progress-bar"><div class="progress-fill" id="fill"></div></div>
+  <div class="progress-label"><span id="count">0 / 0 odsłoniętych</span><span>Część 1 z 3</span></div>
 </div>
 
-<div id="hud"></div>
-<div id="hud2"></div>
-<div id="msg"></div>
-<button class="menu-btn secondary" id="backBtn" onclick="backToMain()">Menu</button>
-<canvas id="canvas"></canvas>
+<main id="quiz"></main>
+
+<footer>
+  Materiał na podstawie skryptu „Matematyka", rozdział 17 — Geometria analityczna w przestrzeni.
+</footer>
 
 <script>
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
-function resize(){ canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-resize();
-window.addEventListener('resize', resize);
-
-// ===================== TRACKS =====================
-// Each track is a list of waypoints (centerline) forming a closed loop, plus road width.
-// Coordinates are in world space.
-
-// Tracks built from explicit polyline points (sharp corners) - much larger than before
-function makeRectLoop(cx,cy,w,h){
-  return [
-    {x:cx-w, y:cy-h}, {x:cx+w, y:cy-h}, {x:cx+w, y:cy+h}, {x:cx-w, y:cy+h}
-  ];
-}
-
-// dense() inserts intermediate points along straight segments so AI/progress tracking
-// works smoothly, while keeping sharp corner vertices intact (no rounding).
-function dense(points, stepsPerSeg=14){
-  const out=[];
-  for(let i=0;i<points.length;i++){
-    const a = points[i], b = points[(i+1)%points.length];
-    for(let s=0;s<stepsPerSeg;s++){
-      const t=s/stepsPerSeg;
-      out.push({x:a.x+(b.x-a.x)*t, y:a.y+(b.y-a.y)*t});
+const data = [
+{
+  section: "Wektory i ich właściwości",
+  items: [
+    {
+      tag: "Definicja",
+      q: "Czym jest przestrzeń ℝ³ i co nazywamy wektorem wodzącym?",
+      a: `<p>ℝ³ to zbiór wszystkich uporządkowanych trójek liczb rzeczywistych: ℝ³ = {(x, y, z) : x, y, z ∈ ℝ}.</p>
+          <p>Wektorem wodzącym punktu (x, y, z) nazywamy wektor (x, y, z) zaczepiony w początku układu O = (0, 0, 0).</p>`
+    },
+    {
+      tag: "Definicja",
+      q: "Kiedy punkty są współliniowe, a kiedy współpłaszczyznowe (komplanarne)?",
+      a: `<p><b>Współliniowe</b> — gdy istnieje prosta zawierająca te punkty. Dowolne dwa punkty są zawsze współliniowe.</p>
+          <p><b>Współpłaszczyznowe</b> — gdy istnieje płaszczyzna zawierająca te punkty. Dowolne trzy punkty są zawsze współpłaszczyznowe.</p>`
+    },
+    {
+      tag: "Kryterium",
+      q: "Jak sprawdzić, czy wektory u, v są współliniowe (równoległe)?",
+      a: `<div class="formula-box">$$\\vec u \\| \\vec v \\iff \\exists k,l \\in \\mathbb{R},\\ (k\\neq 0 \\lor l\\neq 0):\\ k\\vec u + l\\vec v = \\vec 0$$</div>
+          <p>Równoważnie: rząd macierzy złożonej z u, v jest ≤ 1.</p>`
+    },
+    {
+      tag: "Kryterium",
+      q: "Jak sprawdzić, czy wektory u, v, w są współpłaszczyznowe?",
+      a: `<div class="formula-box">$$\\vec u,\\vec v,\\vec w \\text{ komplanarne} \\iff \\det\\begin{bmatrix}\\vec u\\\\ \\vec v\\\\ \\vec w\\end{bmatrix} = 0$$</div>`
+    },
+    {
+      tag: "Definicja",
+      q: "Jak definiujemy sumę, różnicę wektorów i iloczyn wektora przez liczbę?",
+      a: `<div class="formula-box">
+          $$\\vec u + \\vec v = (u_1+v_1,\\, u_2+v_2,\\, u_3+v_3)$$
+          $$\\vec u - \\vec v = (u_1-v_1,\\, u_2-v_2,\\, u_3-v_3)$$
+          $$k\\cdot \\vec u = (ku_1,\\, ku_2,\\, ku_3)$$
+          </div>`
+    },
+    {
+      tag: "Definicja",
+      q: "Jak obliczamy długość wektora i co to jest wersor?",
+      a: `<div class="formula-box">$$|\\vec u| = \\sqrt{u_1^2+u_2^2+u_3^2}$$</div>
+          <p>Wersor to wektor o długości 1. Wersory standardowe: i = (1,0,0), j = (0,1,0), k = (0,0,1).</p>`
     }
-  }
-  return out;
+  ]
+},
+{
+  section: "Iloczyn skalarny, wektorowy, mieszany",
+  items: [
+    {
+      tag: "Definicja",
+      q: "Jak definiuje się iloczyn skalarny dwóch wektorów i jak obliczyć go ze współrzędnych?",
+      a: `<div class="formula-box">
+          $$\\vec u \\circ \\vec v = |\\vec u|\\,|\\vec v|\\cos\\varphi$$
+          $$\\vec u \\circ \\vec v = u_1v_1+u_2v_2+u_3v_3$$
+          </div>
+          <p>Wniosek: kąt między wektorami φ = arccos(u∘v / (|u|·|v|)).</p>`
+    },
+    {
+      tag: "Własność",
+      q: "Kiedy dwa wektory są prostopadłe w sensie iloczynu skalarnego?",
+      a: `<div class="formula-box">$$\\vec u \\perp \\vec v \\iff \\vec u \\circ \\vec v = 0$$</div>
+          <p>Przykład: u=(1,-3,2), v=(2,4,5): 1·2+(-3)·4+2·5 = 2-12+10 = 0 ⇒ prostopadłe.</p>`
+    },
+    {
+      tag: "Definicja",
+      q: "Jak zdefiniowany jest iloczyn wektorowy u × v i jak go policzyć?",
+      a: `<p>Wektor w = u × v spełnia: w⊥u, w⊥v, |w| = |u||v|sinφ, a orientacja (u,v,w) jest zgodna z układem współrzędnych.</p>
+          <div class="formula-box">
+          $$\\vec u \\times \\vec v = \\begin{vmatrix}\\vec i & \\vec j & \\vec k\\\\ u_1&u_2&u_3\\\\ v_1&v_2&v_3\\end{vmatrix}$$
+          </div>`
+    },
+    {
+      tag: "Własność",
+      q: "Jakie są kluczowe własności iloczynu wektorowego?",
+      a: `<div class="formula-box">
+          $$\\vec v\\times\\vec u = -\\vec u\\times\\vec v$$
+          $$|\\vec u \\times \\vec v| = |\\vec u||\\vec v| \\iff \\vec u \\perp \\vec v$$
+          $$\\vec u \\| \\vec v \\iff \\vec u \\times \\vec v = \\vec 0$$
+          </div>`
+    },
+    {
+      tag: "Definicja",
+      q: "Czym jest iloczyn mieszany (u, v, w) i kiedy wektory są komplanarne?",
+      a: `<div class="formula-box">
+          $$(\\vec u,\\vec v,\\vec w) = (\\vec u \\times \\vec v)\\circ \\vec w = \\begin{vmatrix}u_1&u_2&u_3\\\\ v_1&v_2&v_3\\\\ w_1&w_2&w_3\\end{vmatrix}$$
+          </div>
+          <p>Wektory u, v, w są współpłaszczyznowe ⇔ (u, v, w) = 0.</p>`
+    },
+    {
+      tag: "Zastosowanie",
+      q: "Jak za pomocą iloczynów obliczyć pole trójkąta i objętość równoległościanu?",
+      a: `<div class="formula-box">
+          $$S = \\tfrac12 |\\vec u \\times \\vec v| \\quad \\text{(pole trójkąta na } u,v)$$
+          $$V = |(\\vec u,\\vec v,\\vec w)| \\quad \\text{(objętość równoległościanu)}$$
+          </div>
+          <p>Objętość czworościanu o wierzchołkach P₁..P₄: V = (1/6)·|det macierzy 4×4 ze współrzędnymi jednorodnymi|.</p>`
+    }
+  ]
+},
+{
+  section: "Płaszczyzny i proste w przestrzeni",
+  items: [
+    {
+      tag: "Równanie",
+      q: "Jakie jest równanie płaszczyzny przechodzącej przez P₀ i prostopadłej do wektora normalnego n=(A,B,C)?",
+      a: `<div class="formula-box">
+          $$\\pi: A(x-x_0)+B(y-y_0)+C(z-z_0)=0$$
+          $$\\pi: Ax+By+Cz+D=0 \\quad \\text{(postać ogólna)}$$
+          </div>`
+    },
+    {
+      tag: "Równanie",
+      q: "Jak wygląda równanie parametryczne płaszczyzny rozpiętej na wektorach u, v?",
+      a: `<div class="formula-box">
+          $$\\pi: (x,y,z)=(x_0,y_0,z_0)+s(x_1,y_1,z_1)+t(x_2,y_2,z_2),\\quad s,t\\in\\mathbb{R}$$
+          </div>`
+    },
+    {
+      tag: "Równanie",
+      q: "Jak zapisać równanie płaszczyzny przechodzącej przez trzy niewspółliniowe punkty?",
+      a: `<div class="formula-box">
+          $$\\pi: \\begin{vmatrix} x & y & z & 1\\\\ x_1&y_1&z_1&1\\\\ x_2&y_2&z_2&1\\\\ x_3&y_3&z_3&1\\end{vmatrix} = 0$$
+          </div>
+          <p>Dodatkowo: równanie odcinkowe x/a + y/b + z/c = 1, gdzie a,b,c to wartości odcinane na osiach.</p>`
+    },
+    {
+      tag: "Równanie",
+      q: "Jakie są trzy postacie równania prostej w przestrzeni (kierunkowe, parametryczne, krawędziowe)?",
+      a: `<div class="formula-box">
+          $$k: \\frac{x-x_0}{a}=\\frac{y-y_0}{b}=\\frac{z-z_0}{c} \\quad \\text{(kierunkowe)}$$
+          $$k: (x,y,z)=(x_0,y_0,z_0)+s(a,b,c) \\quad \\text{(parametryczne)}$$
+          $$k: \\begin{cases}A_1x+B_1y+C_1z+D_1=0\\\\ A_2x+B_2y+C_2z+D_2=0\\end{cases} \\quad \\text{(krawędziowe)}$$
+          </div>`
+    },
+    {
+      tag: "Wzór",
+      q: "Mając równanie krawędziowe prostej (przecięcie dwóch płaszczyzn), jak wyznaczyć jej wektor kierunkowy?",
+      a: `<div class="formula-box">
+          $$\\vec v = (A_1,B_1,C_1) \\times (A_2,B_2,C_2)$$
+          </div>
+          <p>Czyli iloczyn wektorowy wektorów normalnych obu płaszczyzn.</p>`
+    }
+  ]
+},
+{
+  section: "Odległości, rzuty i kąty",
+  items: [
+    {
+      tag: "Wzór",
+      q: "Jak obliczyć odległość punktu P₁ od płaszczyzny π?",
+      a: `<div class="formula-box">
+          $$d(P_1,\\pi)=\\frac{|A(x_1-x_0)+B(y_1-y_0)+C(z_1-z_0)|}{\\sqrt{A^2+B^2+C^2}}$$
+          </div>`
+    },
+    {
+      tag: "Wzór",
+      q: "Jak obliczyć odległość punktu P₁ od prostej k (dany punkt P₀ i wektor kierunku (a,b,c))?",
+      a: `<div class="formula-box">
+          $$d(P_1,k)=\\frac{|(x_1-x_0,y_1-y_0,z_1-z_0)\\times(a,b,c)|}{\\sqrt{a^2+b^2+c^2}}$$
+          </div>`
+    },
+    {
+      tag: "Definicja",
+      q: "Co to są proste skośne i jaki jest wzór na odległość między nimi?",
+      a: `<p>Proste skośne — nierównoległe i nieprzecinające się proste w przestrzeni.</p>
+          <div class="formula-box">
+          $$d(k_1,k_2)=\\frac{\\left|\\begin{matrix}x_1-x_2&y_1-y_2&z_1-z_2\\\\ a_1&b_1&c_1\\\\ a_2&b_2&c_2\\end{matrix}\\right|}{|(a_1,b_1,c_1)\\times(a_2,b_2,c_2)|}$$
+          </div>`
+    },
+    {
+      tag: "Wzór",
+      q: "Jak wyraża się kąt między dwiema prostymi o wektorach kierunkowych v₁, v₂?",
+      a: `<div class="formula-box">
+          $$\\angle(k_1,k_2)=\\arccos\\frac{|\\vec v_1 \\circ \\vec v_2|}{|\\vec v_1|\\cdot|\\vec v_2|}$$
+          </div>
+          <p>Analogicznie dla płaszczyzn — używamy wektorów normalnych n₁, n₂.</p>`
+    },
+    {
+      tag: "Wzór",
+      q: "Jak wyraża się kąt nachylenia prostej k (wektor kierunku v) do płaszczyzny π (wektor normalny n)?",
+      a: `<div class="formula-box">
+          $$\\angle(k,\\pi)=\\arcsin\\frac{|\\vec v \\circ \\vec n|}{|\\vec v|\\cdot|\\vec n|}$$
+          </div>
+          <p>Wynika to z zależności φ = π/2 − ∠(v, n).</p>`
+    },
+    {
+      tag: "Wzór",
+      q: "Jaki jest wzór na rzut prostokątny punktu P₁ na płaszczyznę π?",
+      a: `<div class="formula-box">
+          $$P_2 = (x_1,y_1,z_1) - \\frac{A(x_1-x_0)+B(y_1-y_0)+C(z_1-z_0)}{A^2+B^2+C^2}\\cdot(A,B,C)$$
+          </div>`
+    }
+  ]
 }
-
-// Level 1: big rectangular oval-ish loop with two sharp hairpins
-function track1(){
-  const pts = [
-    {x:-700,y:-450},{x:700,y:-450},{x:700,y:-150},
-    {x:200,y:-150},{x:200,y:150},{x:700,y:150},
-    {x:700,y:450},{x:-700,y:450},{x:-700,y:150},
-    {x:-200,y:150},{x:-200,y:-150},{x:-700,y:-150}
-  ];
-  return dense(pts,12);
-}
-
-// Level 2: figure-8 style with sharp crossing corners, large scale
-function track2(){
-  const pts = [
-    {x:-650,y:-500},{x:0,y:-500},{x:0,y:-100},
-    {x:650,y:-100},{x:650,y:500},{x:0,y:500},
-    {x:0,y:100},{x:-650,y:100}
-  ];
-  return dense(pts,12);
-}
-
-// Level 3: zigzag chicane track, lots of sharp turns
-function track3(){
-  const pts = [
-    {x:-750,y:-400},{x:-300,y:-400},{x:-300,y:-100},
-    {x:150,y:-100},{x:150,y:-400},{x:750,y:-400},
-    {x:750,y:0},{x:300,y:0},{x:300,y:300},
-    {x:750,y:300},{x:750,y:550},{x:-750,y:550},
-    {x:-750,y:200},{x:-300,y:200},{x:-300,y:450},
-    {x:-750,y:450}
-  ];
-  return dense(pts,10);
-}
-
-// Level 4: wide track with long straights and 90-degree corners (large)
-function track4(){
-  const pts = [
-    {x:-850,y:-350},{x:850,y:-350},{x:850,y:0},
-    {x:400,y:0},{x:400,y:350},{x:850,y:350},
-    {x:850,y:600},{x:-850,y:600},{x:-850,y:250},
-    {x:-400,y:250},{x:-400,y:-100},{x:-850,y:-100}
-  ];
-  return dense(pts,12);
-}
-
-// Level 5: complex sharp-cornered circuit, biggest one
-function track5(){
-  const pts = [
-    {x:-900,y:-500},{x:-300,y:-500},{x:-300,y:-200},
-    {x:300,y:-200},{x:300,y:-600},{x:900,y:-600},
-    {x:900,y:-100},{x:500,y:-100},{x:500,y:200},
-    {x:900,y:200},{x:900,y:600},{x:200,y:600},
-    {x:200,y:300},{x:-200,y:300},{x:-200,y:600},
-    {x:-900,y:600},{x:-900,y:100},{x:-500,y:100},
-    {x:-500,y:-200},{x:-900,y:-200}
-  ];
-  return dense(pts,10);
-}
-
-const LEVELS = [
-  { name:"Wielki prostokąt z zakrętami", width:140, points: track1(), laps:3, timeLimit:75 },
-  { name:"Ósemka XXL", width:130, points: track2(), laps:3, timeLimit:90 },
-  { name:"Szykany", width:120, points: track3(), laps:3, timeLimit:100 },
-  { name:"Szeroki kwadrat", width:150, points: track4(), laps:3, timeLimit:85 },
-  { name:"Wielki obwód", width:120, points: track5(), laps:3, timeLimit:120 },
 ];
 
-// generate decorative trees that don't overlap the track
-function generateTrees(track, bounds, count){
-  const trees=[];
-  let tries=0;
-  while(trees.length<count && tries<count*20){
-    tries++;
-    const x = bounds.minX + Math.random()*(bounds.maxX-bounds.minX);
-    const y = bounds.minY + Math.random()*(bounds.maxY-bounds.minY);
-    let onRoad=false;
-    for(const p of track.points){
-      if((p.x-x)**2+(p.y-y)**2 < (track.width*0.8)**2){ onRoad=true; break; }
-    }
-    if(!onRoad) trees.push({x,y,size:18+Math.random()*14});
-  }
-  return trees;
-}
-function trackBounds(track){
-  let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
-  for(const p of track.points){
-    if(p.x<minX)minX=p.x; if(p.x>maxX)maxX=p.x;
-    if(p.y<minY)minY=p.y; if(p.y>maxY)maxY=p.y;
-  }
-  const pad=300;
-  return {minX:minX-pad,maxX:maxX+pad,minY:minY-pad,maxY:maxY+pad};
-}
-for(const lvl of LEVELS){
-  lvl.bounds = trackBounds(lvl);
-  lvl.trees = generateTrees(lvl, lvl.bounds, 60);
-  lvl.rocks = generateTrees(lvl, lvl.bounds, 40);
-}
+const quiz = document.getElementById('quiz');
+let qIndex = 0;
+let total = 0;
+data.forEach(d => total += d.items.length);
+document.getElementById('count').textContent = `0 / ${total} odsłoniętych`;
 
-// ===================== GAME STATE =====================
-let mode = null; // 'race','duel','solo'
-let level = null;
-let running = false;
-let animId = null;
+let opened = new Set();
 
-const keys = {};
-window.addEventListener('keydown', e => { keys[e.key.toLowerCase()] = true; });
-window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+data.forEach(section => {
+  const div = document.createElement('div');
+  div.className = 'section-divider';
+  div.textContent = section.section;
+  quiz.appendChild(div);
 
-// ===================== CAR PHYSICS =====================
-class Car {
-  constructor(x,y,angle,color, isPlayer, controls){
-    this.x=x; this.y=y; this.angle=angle;
-    this.vx=0; this.vy=0;
-    this.speed=0;
-    this.color=color;
-    this.isPlayer=isPlayer;
-    this.controls=controls; // {up,down,left,right}
-    this.maxSpeed = 4.6;       // not too fast
-    this.accel = 0.10;
-    this.brake = 0.18;
-    this.friction = 0.985;
-    this.turnSpeed = 0.030;
-    this.driftFactor = 0;
-    this.lapProgress = 0;
-    this.lap = 0;
-    this.finished = false;
-    this.finishTime = 0;
-    this.targetIdx = 1; // for AI
-    this.steerInput = 0;
-  }
-  update(track, dt, elapsed){
-    let throttle=0, steer=0, braking=false, drifting=false;
-    if(this.isPlayer){
-      if(keys[this.controls.up]) throttle=1;
-      if(keys[this.controls.down]) { throttle=-0.6; braking=true; }
-      if(keys[this.controls.left]) steer=-1;
-      if(keys[this.controls.right]) steer=1;
-      if(keys[this.controls.drift]) drifting=true;
-    } else {
-      // AI
-      if(this._mistakeTimer===undefined){ this._mistakeTimer=0; this._mistakeUntil=0; this._mistakeSteer=0; }
-      this._mistakeTimer--;
-      if(this._mistakeTimer<=0){
-        // occasionally start a "mistake" period (oversteer/understeer/throttle lift)
-        if(Math.random() < 0.01){
-          this._mistakeUntil = 30 + Math.random()*40;
-          this._mistakeSteer = (Math.random()-0.5)*1.2;
-        }
-        this._mistakeTimer = 20 + Math.random()*40;
+  section.items.forEach(item => {
+    qIndex++;
+    const card = document.createElement('div');
+    card.className = 'card';
+    const idStr = String(qIndex).padStart(2,'0');
+    card.innerHTML = `
+      <div class="q-row">
+        <div class="q-num">${idStr}</div>
+        <div class="q-text"><span class="q-tag">${item.tag}</span>${item.q}</div>
+        <div class="chevron">›</div>
+      </div>
+      <div class="answer"><div class="answer-inner">${item.a}</div></div>
+    `;
+    const row = card.querySelector('.q-row');
+    row.addEventListener('click', () => {
+      const wasOpen = card.classList.contains('open');
+      card.classList.toggle('open');
+      if(!wasOpen && !opened.has(idStr)){
+        opened.add(idStr);
+        document.getElementById('count').textContent = `${opened.size} / ${total} odsłoniętych`;
+        document.getElementById('fill').style.width = (opened.size/total*100)+'%';
       }
-      const target = track.points[this.targetIdx];
-      const dx = target.x - this.x, dy = target.y - this.y;
-      const targetAngle = Math.atan2(dy,dx);
-      let diff = targetAngle - this.angle;
-      while(diff > Math.PI) diff -= Math.PI*2;
-      while(diff < -Math.PI) diff += Math.PI*2;
-      steer = Math.max(-1, Math.min(1, diff*2));
-      throttle = 0.85;
-      if(Math.abs(diff) > 0.9) throttle = 0.5;
-
-      if(this._mistakeUntil>0){
-        this._mistakeUntil--;
-        steer += this._mistakeSteer;
-        steer = Math.max(-1, Math.min(1, steer));
-        throttle *= 0.7;
+      if(window.renderMathInElement){
+        renderMathInElement(card, {
+          delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "$", right: "$", display: false}
+          ]
+        });
       }
-
-      if(Math.hypot(dx,dy) < 80){
-        this.targetIdx = (this.targetIdx+1) % track.points.length;
-      }
-    }
-
-    // speed
-    if(throttle>0){
-      this.speed += this.accel*throttle;
-    } else if(throttle<0){
-      this.speed += this.brake*throttle;
-    }
-    this.speed *= this.friction;
-    if(this.speed > this.maxSpeed) this.speed = this.maxSpeed;
-    if(this.speed < -this.maxSpeed*0.5) this.speed = -this.maxSpeed*0.5;
-    if(Math.abs(this.speed) < 0.01) this.speed = 0;
-
-    // turning - drift mechanic: while drifting, turn radius tighter but grip lower (slide)
-    let effTurn = this.turnSpeed * (0.4 + Math.abs(this.speed)/this.maxSpeed*0.9);
-    if(drifting){
-      effTurn *= 1.7;
-      this.driftFactor = Math.min(1, this.driftFactor + 0.06);
-    } else {
-      this.driftFactor = Math.max(0, this.driftFactor - 0.08);
-    }
-    this.angle += steer * effTurn * (this.speed>=0?1:-1);
-
-    // velocity from heading, with drift sliding (velocity lags behind heading)
-    const heading = {x:Math.cos(this.angle), y:Math.sin(this.angle)};
-    const targetVx = heading.x * this.speed;
-    const targetVy = heading.y * this.speed;
-    const grip = drifting ? 0.08 : 0.25;
-    this.vx += (targetVx - this.vx) * grip;
-    this.vy += (targetVy - this.vy) * grip;
-
-    this.x += this.vx;
-    this.y += this.vy;
-
-    // wall collision: find nearest centerline point, push car back inside road width, bounce velocity
-    this.handleWalls(track);
-
-    // lap progress tracking
-    this.updateProgress(track);
-  }
-  handleWalls(track){
-    const pts = track.points;
-    let bestDist=Infinity, bestPt=null, bestNorm=null;
-    for(let i=0;i<pts.length;i++){
-      const a = pts[i], b = pts[(i+1)%pts.length];
-      const abx=b.x-a.x, aby=b.y-a.y;
-      const len2 = abx*abx+aby*aby || 1;
-      let t = ((this.x-a.x)*abx + (this.y-a.y)*aby)/len2;
-      t = Math.max(0, Math.min(1, t));
-      const px = a.x + abx*t, py = a.y + aby*t;
-      const d2 = (this.x-px)**2 + (this.y-py)**2;
-      if(d2 < bestDist){
-        bestDist = d2; bestPt = {x:px,y:py};
-      }
-    }
-    const dist = Math.sqrt(bestDist);
-    const limit = track.width/2 - 14; // car half-size margin
-    if(dist > limit){
-      const nx = (this.x - bestPt.x)/ (dist||1);
-      const ny = (this.y - bestPt.y)/ (dist||1);
-      this.x = bestPt.x + nx*limit;
-      this.y = bestPt.y + ny*limit;
-      const vn = this.vx*nx + this.vy*ny;
-      this.vx -= 1.9 * vn * nx;
-      this.vy -= 1.9 * vn * ny;
-      this.vx *= 0.65;
-      this.vy *= 0.65;
-      this.speed *= 0.55;
-    }
-  }
-  updateProgress(track){
-    const pts = track.points;
-    let nearest = 0, nd = Infinity;
-    for(let i=0;i<pts.length;i++){
-      const d = Math.hypot(pts[i].x-this.x, pts[i].y-this.y);
-      if(d<nd){nd=d; nearest=i;}
-    }
-    if(this._lastIdx===undefined) this._lastIdx = nearest;
-    let diff = nearest - this._lastIdx;
-    if(diff < -pts.length/2) { // crossed from end to start = new lap
-      this.lap++;
-    } else if(diff > pts.length/2){
-      this.lap--;
-    }
-    this._lastIdx = nearest;
-    this.progressIdx = nearest;
-  }
-}
-
-// ===================== TRACK DRAWING =====================
-function drawTrack(track, cam){
-  const pts = track.points;
-  ctx.save();
-  ctx.translate(canvas.width/2 - cam.x, canvas.height/2 - cam.y);
-
-  // grass
-  ctx.fillStyle = '#3a7d3a';
-  ctx.fillRect(cam.x-canvas.width, cam.y-canvas.height, canvas.width*2, canvas.height*2);
-
-  // rocks
-  for(const r of track.rocks){
-    ctx.fillStyle = '#8a8a8a';
-    ctx.beginPath();
-    ctx.arc(r.x, r.y, r.size*0.5, 0, Math.PI*2);
-    ctx.fill();
-    ctx.fillStyle = '#6e6e6e';
-    ctx.beginPath();
-    ctx.arc(r.x+r.size*0.15, r.y+r.size*0.1, r.size*0.25, 0, Math.PI*2);
-    ctx.fill();
-  }
-
-  // trees
-  for(const t of track.trees){
-    ctx.fillStyle = '#2d5a2d';
-    ctx.beginPath();
-    ctx.arc(t.x, t.y, t.size, 0, Math.PI*2);
-    ctx.fill();
-    ctx.fillStyle = '#5a3d1f';
-    ctx.fillRect(t.x-3, t.y, 6, t.size*0.7);
-  }
-
-  // road
-  ctx.lineCap='round'; ctx.lineJoin='round';
-  ctx.strokeStyle = '#444c56';
-  ctx.lineWidth = track.width;
-  ctx.beginPath();
-  ctx.moveTo(pts[0].x, pts[0].y);
-  for(let i=1;i<=pts.length;i++){
-    const p = pts[i%pts.length];
-    ctx.lineTo(p.x,p.y);
-  }
-  ctx.stroke();
-
-  // road edges
-  ctx.strokeStyle = '#f0f0f0';
-  ctx.lineWidth = track.width+6;
-  ctx.globalCompositeOperation='destination-over';
-  ctx.beginPath();
-  ctx.moveTo(pts[0].x, pts[0].y);
-  for(let i=1;i<=pts.length;i++){
-    const p = pts[i%pts.length];
-    ctx.lineTo(p.x,p.y);
-  }
-  ctx.stroke();
-  ctx.globalCompositeOperation='source-over';
-
-  // center dashed line
-  ctx.strokeStyle='#f7c531';
-  ctx.lineWidth=3;
-  ctx.setLineDash([15,15]);
-  ctx.beginPath();
-  ctx.moveTo(pts[0].x, pts[0].y);
-  for(let i=1;i<=pts.length;i++){
-    const p = pts[i%pts.length];
-    ctx.lineTo(p.x,p.y);
-  }
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  // start/finish line
-  const a = pts[0], b = pts[1];
-  const dx=b.x-a.x, dy=b.y-a.y;
-  const len=Math.hypot(dx,dy);
-  const nx=-dy/len, ny=dx/len;
-  ctx.fillStyle='#fff';
-  for(let i=-1;i<=1;i+=0.5){
-    ctx.fillRect(a.x + nx*i*track.width/3 - 3, a.y + ny*i*track.width/3 -3, 8,8);
-  }
-  ctx.strokeStyle='#000';
-  ctx.lineWidth=4;
-  ctx.beginPath();
-  ctx.moveTo(a.x - nx*track.width/2, a.y - ny*track.width/2);
-  ctx.lineTo(a.x + nx*track.width/2, a.y + ny*track.width/2);
-  ctx.stroke();
-
-  ctx.restore();
-}
-
-function drawCar(car, cam){
-  ctx.save();
-  ctx.translate(canvas.width/2 - cam.x + car.x, canvas.height/2 - cam.y + car.y);
-  ctx.rotate(car.angle);
-  // drift smoke
-  if(car.driftFactor>0.3){
-    ctx.fillStyle = `rgba(220,220,220,${car.driftFactor*0.5})`;
-    ctx.beginPath();
-    ctx.ellipse(-14,0,10+car.driftFactor*8,6+car.driftFactor*5,0,0,Math.PI*2);
-    ctx.fill();
-  }
-  ctx.fillStyle = car.color;
-  ctx.fillRect(-12,-7,24,14);
-  ctx.fillStyle = '#222';
-  ctx.fillRect(-4,-8,10,16);
-  // wheels
-  ctx.fillStyle='#111';
-  ctx.fillRect(-10,-9,6,3);
-  ctx.fillRect(-10,6,6,3);
-  ctx.fillRect(6,-9,6,3);
-  ctx.fillRect(6,6,6,3);
-  ctx.restore();
-}
-
-// ===================== GAME LOOP =====================
-let cars = [];
-let camFollow = null;
-let raceStart = 0;
-let totalLaps = 3;
-let finishedOrder = [];
-
-function setupRace(levelIdx, gameMode){
-  level = LEVELS[levelIdx];
-  totalLaps = level.laps;
-  finishedOrder = [];
-  const start = level.points[0];
-  const start2 = level.points[1];
-  const dir = Math.atan2(start2.y-start.y, start2.x-start.x);
-
-  cars = [];
-  // Player 1
-  const p1 = new Car(start.x, start.y, dir, '#e63946', true, {up:'arrowup',down:'arrowdown',left:'arrowleft',right:'arrowright',drift:'shift'});
-  if(gameMode==='race') {
-    p1.controls = {up:'arrowup',down:'arrowdown',left:'arrowleft',right:'arrowright',drift:'shift'};
-  }
-  if(gameMode==='duel'){
-    p1.controls = {up:'w',down:'s',left:'a',right:'d',drift:' '};
-  }
-  cars.push(p1);
-
-  if(gameMode==='duel'){
-    const p2 = new Car(start.x-20, start.y+20, dir, '#1d9e75', true, {up:'arrowup',down:'arrowdown',left:'arrowleft',right:'arrowright',drift:'shift'});
-    cars.push(p2);
-  }
-  if(gameMode==='race'){
-    const offsets = [[-25,-25],[25,25],[-25,25]];
-    const colors = ['#3a86ff','#ffbe0b','#9d4edd'];
-    for(let i=0;i<3;i++){
-      const ai = new Car(start.x+offsets[i][0], start.y+offsets[i][1], dir, colors[i], false, null);
-      ai.maxSpeed = 4.0 + Math.random()*0.5;
-      ai.targetIdx = 2;
-      cars.push(ai);
-    }
-  }
-  if(gameMode==='solo'){
-    p1.maxSpeed = 4.8;
-  }
-
-  raceStart = performance.now();
-  running = true;
-  document.getElementById('msg').style.display='none';
-  loop();
-}
-
-function loop(){
-  if(!running) return;
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-
-  for(const c of cars){
-    if(!c.finished) c.update(level, 1, performance.now()-raceStart);
-  }
-
-  // check finish
-  if(mode!=='solo'){
-    for(const c of cars){
-      if(!c.finished && c.lap >= totalLaps){
-        c.finished = true;
-        c.finishTime = performance.now()-raceStart;
-        finishedOrder.push(c);
-      }
-    }
-  } else {
-    const c = cars[0];
-    if(!c.finished && c.lap >= totalLaps){
-      c.finished = true;
-      c.finishTime = performance.now()-raceStart;
-    }
-  }
-
-  // camera follows player 1 (split logic for duel: just follow p1, simple)
-  camFollow = cars[0];
-
-  drawTrack(level, camFollow);
-  for(const c of cars) drawCar(c, camFollow);
-
-  updateHUD();
-
-  // end condition
-  if(mode==='race' && cars[0].finished){
-    endRace();
-    return;
-  }
-  if(mode==='duel' && (cars[0].finished || cars[1].finished)){
-    endRace();
-    return;
-  }
-  if(mode==='solo'){
-    const elapsed = (performance.now()-raceStart)/1000;
-    if(cars[0].finished){
-      endRace();
-      return;
-    }
-    if(elapsed > level.timeLimit){
-      endRace(true);
-      return;
-    }
-  }
-
-  animId = requestAnimationFrame(loop);
-}
-
-function fmtTime(ms){
-  const s = ms/1000;
-  return s.toFixed(2)+'s';
-}
-
-function updateHUD(){
-  const hud = document.getElementById('hud');
-  const hud2 = document.getElementById('hud2');
-  const elapsed = (performance.now()-raceStart)/1000;
-
-  if(mode==='race'){
-    hud.style.display='block';
-    let pos = 1;
-    const myIdx = cars[0].lap*100000 + cars[0].progressIdx;
-    for(let i=1;i<cars.length;i++){
-      const idx = cars[i].lap*100000 + cars[i].progressIdx;
-      if(idx > myIdx) pos++;
-    }
-    hud.innerHTML = `Okrążenie: ${Math.min(cars[0].lap+1,totalLaps)}/${totalLaps}<br>Pozycja: ${pos}/4<br>Czas: ${elapsed.toFixed(1)}s`;
-    hud2.style.display='none';
-  } else if(mode==='duel'){
-    hud.style.display='block';
-    hud2.style.display='block';
-    hud.innerHTML = `Gracz 1 (WSAD)<br>Okrążenie: ${Math.min(cars[0].lap+1,totalLaps)}/${totalLaps}`;
-    hud2.innerHTML = `Gracz 2 (Strzałki)<br>Okrążenie: ${Math.min(cars[1].lap+1,totalLaps)}/${totalLaps}`;
-  } else if(mode==='solo'){
-    hud.style.display='block';
-    const remaining = Math.max(0, level.timeLimit - elapsed);
-    hud.innerHTML = `Okrążenie: ${Math.min(cars[0].lap+1,totalLaps)}/${totalLaps}<br>Czas: ${elapsed.toFixed(1)}s<br>Limit: ${remaining.toFixed(1)}s`;
-    hud2.style.display='none';
-  }
-}
-
-function endRace(timeout){
-  running = false;
-  cancelAnimationFrame(animId);
-  const msg = document.getElementById('msg');
-  msg.style.display='block';
-
-  if(mode==='race'){
-    const order = [...cars].sort((a,b)=>{
-      const ai = a.lap*100000+(a.progressIdx||0);
-      const bi = b.lap*100000+(b.progressIdx||0);
-      return (b.finished?1:0)-(a.finished?1:0) || (a.finishTime||Infinity)-(b.finishTime||Infinity) || bi-ai;
     });
-    const place = order.indexOf(cars[0])+1;
-    msg.innerHTML = place===1 ? `🏆 Wygrałeś!<br><small style="font-size:20px">Czas: ${fmtTime(cars[0].finishTime)}</small>` : `Zajęłeś ${place}. miejsce`;
-  } else if(mode==='duel'){
-    const winner = cars[0].finished ? 1 : 2;
-    msg.innerHTML = `🏁 Gracz ${winner} wygrywa!`;
-  } else if(mode==='solo'){
-    if(timeout){
-      msg.innerHTML = `⏱ Czas minął!<br><small style="font-size:20px">Spróbuj ponownie</small>`;
-    } else {
-      msg.innerHTML = `✅ Ukończono!<br><small style="font-size:20px">Czas: ${fmtTime(cars[0].finishTime)}</small>`;
-    }
-  }
-}
+    quiz.appendChild(card);
+  });
+});
 
-// ===================== MENU LOGIC =====================
-function showLevels(m){
-  mode = m;
-  document.getElementById('mainMenu').style.display='none';
-  document.getElementById('levelMenu').style.display='block';
-}
-function startDuel(){
-  mode='duel';
-  startGame(0);
-}
-function startGame(levelIdx){
-  document.getElementById('ui').style.display='none';
-  document.getElementById('backBtn').style.display='block';
-  setupRace(levelIdx, mode);
-}
-function backToMain(){
-  running=false;
-  cancelAnimationFrame(animId);
-  document.getElementById('ui').style.display='flex';
-  document.getElementById('mainMenu').style.display='block';
-  document.getElementById('levelMenu').style.display='none';
-  document.getElementById('backBtn').style.display='none';
-  document.getElementById('hud').style.display='none';
-  document.getElementById('hud2').style.display='none';
-  document.getElementById('msg').style.display='none';
-}
+window.addEventListener('load', () => {
+  if(window.renderMathInElement){
+    renderMathInElement(document.body, {
+      delimiters: [
+        {left: "$$", right: "$$", display: true},
+        {left: "$", right: "$", display: false}
+      ]
+    });
+  }
+});
 </script>
 </body>
 </html>
